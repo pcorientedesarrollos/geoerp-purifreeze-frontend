@@ -16,9 +16,7 @@
             "outputPath": "dist/erp-fronted-purifreeze",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -26,9 +24,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.scss"],
             "scripts": [],
             "server": "src/main.server.ts",
             "outputMode": "server",
@@ -78,10 +74,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
@@ -89,13 +82,14 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.scss"],
             "scripts": []
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "6e111459-871c-4aaa-a749-70697e48768c"
   }
 }

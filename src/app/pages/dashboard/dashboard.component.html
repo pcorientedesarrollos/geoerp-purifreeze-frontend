@@ -1,0 +1,41 @@
+<h1>Dashboard</h1>
+@if (isLoading) {
+<div class="spinner-container">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>
+} @else {
+<div class="cards-container">
+  @for (card of dashboardCards; track card.title) {
+  <mat-card class="dashboard-card" [style.border-left-color]="card.color">
+    <mat-card-header>
+      <div mat-card-avatar class="card-icon-avatar">
+        <mat-icon>{{ card.icon }}</mat-icon>
+      </div>
+      <mat-card-title>{{ card.title }}</mat-card-title>
+      <mat-card-subtitle>Datos Actualizados</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content
+      ><p class="card-value">{{ card.value }}</p></mat-card-content
+    >
+  </mat-card>
+  }
+</div>
+<div class="section-header">
+  <h2>Sección de Filtros</h2>
+  <mat-form-field class="dashboard-filter" appearance="outline">
+    <mat-label>Filtrar...</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="filterControl"
+      [matAutocomplete]="auto"
+    />
+    <mat-icon matSuffix>search</mat-icon>
+    <mat-autocomplete #auto="matAutocomplete">
+      @for (option of filteredOptions$ | async; track option) {
+      <mat-option [value]="option">{{ option }}</mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+</div>
+}

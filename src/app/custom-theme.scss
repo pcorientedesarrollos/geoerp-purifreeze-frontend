@@ -1,0 +1,31 @@
+// src/custom-theme.scss
+@use "@angular/material" as mat;
+
+// Incluye los estilos base y la tipografía de Material.
+@include mat.core();
+
+// 1. Define la paleta de colores primaria usando el azul predefinido de Material.
+$my-primary-palette: mat.define-palette(
+  mat.$blue-palette,
+  500,
+  700,
+  300
+); // Principal, oscuro, claro
+
+// 2. Define las paletas de acento y advertencia.
+$my-accent-palette: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$my-warn-palette: mat.define-palette(mat.$red-palette);
+
+// 3. Crea el tema oscuro usando la nueva paleta azul.
+$my-dark-theme: mat.define-dark-theme(
+  (
+    color: (
+      primary: $my-primary-palette,
+      accent: $my-accent-palette,
+      warn: $my-warn-palette,
+    ),
+  )
+);
+
+// 4. Aplica el tema a todos los componentes de Angular Material.
+@include mat.all-component-themes($my-dark-theme);

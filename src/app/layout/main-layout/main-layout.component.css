@@ -1,0 +1,15 @@
+.main-container {
+  height: 100vh;
+}
+.sidenav {
+  width: 250px;
+  background-color: #424242;
+  border-right: none;
+}
+mat-toolbar {
+  background-color: #303030;
+  color: #ffffff;
+}
+.main-content {
+  padding: 24px;
+}
