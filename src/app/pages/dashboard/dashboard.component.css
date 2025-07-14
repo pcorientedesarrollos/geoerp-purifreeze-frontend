@@ -45,6 +45,10 @@
   justify-content: flex-end;
   gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  position: relative;
+  z-index: 2;
 }
 
 /* --- Estilos Integrados para la Sección del Mapa --- */
@@ -65,7 +69,7 @@
 */
 .map-section-container app-maps {
   display: block; /* Asegura que el componente ocupe su espacio asignado */
-  height: 500px;  /* Altura del mapa, ajústala a tu gusto */
+  height: 500px; /* Altura del mapa, ajústala a tu gusto */
   width: 100%;
   border-radius: 8px; /* Bordes redondeados para un look moderno */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para que resalte */
