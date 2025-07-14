@@ -1,6 +1,4 @@
-<h1>Dashboard</h1>
-
-<!-- Contenedor principal para todos los filtros, alineado a la derecha -->
+<!-- Contenedor principal para todos los filtros -->
 <div class="filters-container">
   <!-- Filtro de Mes -->
   <mat-form-field appearance="outline">
@@ -9,9 +7,7 @@
       [(ngModel)]="selectedMonth"
       (selectionChange)="onFilterChange()"
     >
-      <!-- Opción para deseleccionar -->
       <mat-option [value]="undefined">Ninguno</mat-option>
-      <!-- Itera sobre la lista de meses del componente -->
       @for (month of months; track month.value) {
       <mat-option [value]="month.value">{{ month.name }}</mat-option>
       }
@@ -22,9 +18,7 @@
   <mat-form-field appearance="outline">
     <mat-label>Año</mat-label>
     <mat-select [(ngModel)]="selectedYear" (selectionChange)="onFilterChange()">
-      <!-- Opción para deseleccionar -->
       <mat-option [value]="undefined">Ninguno</mat-option>
-      <!-- Itera sobre la lista de años del componente -->
       @for (year of years; track year) {
       <mat-option [value]="year">{{ year }}</mat-option>
       }
@@ -37,6 +31,7 @@
   <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
 </div>
 } @else {
+<!-- Contenedor de las tarjetas -->
 <div class="cards-container">
   @for (card of dashboardCards; track card.title) {
   <mat-card class="dashboard-card" [style.border-left-color]="card.color">
@@ -47,12 +42,25 @@
       <mat-card-title>{{ card.title }}</mat-card-title>
       <mat-card-subtitle>Datos Actualizados</mat-card-subtitle>
     </mat-card-header>
-    <mat-card-content
-      ><p class="card-value">{{ card.value }}</p></mat-card-content
-    >
+    <mat-card-content>
+      <p class="card-value">{{ card.value }}</p>
+    </mat-card-content>
   </mat-card>
   }
 </div>
 }
 
-<!-- Se eliminó el antiguo ".section-header" de aquí -->
+<!-- === (COPIAR) INICIO DE CAMBIOS === -->
+<!-- Contenedor para la sección del mapa -->
+<!-- Se mostrará cuando las tarjetas terminen de cargar -->
+@if (!isLoading) {
+<div class="map-section-container">
+  <h2>Ubicación en Tiempo Real</h2>
+  <app-maps
+    [markers]="mapMarkers"
+    [center]="mapCenter"
+    [zoom]="mapZoom"
+  ></app-maps>
+</div>
+}
+<!-- === (COPIAR) FIN DE CAMBIOS === -->

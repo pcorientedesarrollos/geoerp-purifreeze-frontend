@@ -1,20 +1,28 @@
+/* Ruta: src/app/pages/dashboard/dashboard.component.css */
+
+/* --- Tus Estilos Originales --- */
 .spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 200px;
 }
+
 .cards-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 24px;
 }
+
 .dashboard-card {
   border-left-width: 5px;
   border-left-style: solid;
-  color: #ffffff;
+  /* Nota: El color de la tarjeta probablemente se maneje desde el componente .ts,
+     pero puedes poner un color por defecto si quieres. */
+  /* color: #ffffff; */
 }
+
 .card-icon-avatar {
   display: flex;
   justify-content: center;
@@ -25,11 +33,47 @@
   height: 40px;
   color: black;
 }
+
 .card-value {
   font-size: 2rem;
   font-weight: bold;
   margin: 0;
 }
+
+/* Este estilo parece ser para los filtros que ya tienes en el HTML. */
+.filters-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* --- Estilos Integrados para la Sección del Mapa --- */
+.map-section-container {
+  margin-top: 32px; /* Alineado con tu margen de .section-header */
+}
+
+.map-section-container h2 {
+  font-size: 1.5rem; /* Coincide con el tamaño de fuente de otros títulos */
+  font-weight: 500;
+  margin-bottom: 1rem;
+  /* color: #333; /* Puedes descomentar esto si tu tema no lo maneja */
+}
+
+/*
+  MUY IMPORTANTE: darle una altura definida al componente del mapa.
+  Sin esto, el mapa no será visible porque su altura por defecto es 0.
+*/
+.map-section-container app-maps {
+  display: block; /* Asegura que el componente ocupe su espacio asignado */
+  height: 500px;  /* Altura del mapa, ajústala a tu gusto */
+  width: 100%;
+  border-radius: 8px; /* Bordes redondeados para un look moderno */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para que resalte */
+}
+
+/* --- Estilos que parecen no usarse en el HTML actual pero se mantienen por si acaso --- */
+/* Si no usas .section-header o .dashboard-filter, puedes eliminarlos. */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -39,10 +83,12 @@
   margin-top: 32px;
   margin-bottom: 16px;
 }
+
 .section-header h2 {
   margin: 0;
   font-weight: 500;
 }
+
 .dashboard-filter {
   width: 350px;
 }
