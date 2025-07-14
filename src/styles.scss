@@ -1,5 +1,20 @@
-// src/styles.scss
+// // src/styles.scss
 
+// // @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+// // @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+// // html,
+// // body {
+// //   height: 100%;
+// //   margin: 0;
+// //   font-family: "Roboto", sans-serif;
+// // background-color: #303030;
+// //   color: #ffffff;
+// // }
+
+// /* La regla @use DEBE ser lo primero que se declara. */
+
+// /* Fuentes y Estilos Globales */
 // @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 // @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
@@ -8,11 +23,21 @@
 //   height: 100%;
 //   margin: 0;
 //   font-family: "Roboto", sans-serif;
-// background-color: #303030;
+//   /* CAMBIO: Un fondo más oscuro para mayor contraste */
+//   background-color: #1c1c1e; /* Negro de iOS */
+
 //   color: #ffffff;
 // }
 
-/* La regla @use DEBE ser lo primero que se declara. */
+
+
+
+
+
+
+/* Ruta: src/styles.scss */
+/* REEMPLAZA TODO EL CONTENIDO CON ESTE CÓDIGO */
+
 
 /* Fuentes y Estilos Globales */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
@@ -23,8 +48,60 @@ body {
   height: 100%;
   margin: 0;
   font-family: "Roboto", sans-serif;
-  /* CAMBIO: Un fondo más oscuro para mayor contraste */
-  background-color: #1c1c1e; /* Negro de iOS */
-
+  background-color: #1c1c1e;
   color: #ffffff;
 }
+
+
+/* --- INICIO DE CORRECCIONES GLOBALES PARA ANGULAR MATERIAL --- */
+
+/* 1. Estilo general para PANELES FLOTANTES (Selects, Menus, etc.) */
+.cdk-overlay-pane {
+  background: #2c2c2c;
+  border-radius: 8px !important;
+}
+
+/* 2. Estilos para las OPCIONES de los Selectores */
+.mat-mdc-option {
+  color: rgba(255, 255, 255, 0.87);
+  &:hover:not(.mdc-list-item--disabled) { background: rgba(255, 255, 255, 0.08); }
+  &.mdc-list-item--selected { background: rgba(63, 81, 181, 0.3); color: white;
+    .mat-pseudo-checkbox { display: none; }
+  }
+}
+
+/* 3. Estilos para el DATEPICKER (Calendario) */
+.mat-datepicker-content-container { background: #2c2c2c !important; }
+.mat-datepicker-content .mat-calendar-body-label,
+.mat-datepicker-content .mat-calendar-table-header,
+.mat-datepicker-content .mat-calendar-body-cell-content,
+.mat-datepicker-content .mat-calendar-arrow,
+.mat-datepicker-content .mat-calendar-period-button { color: rgba(255, 255, 255, 0.87); }
+.mat-calendar-body-selected { background-color: #3f51b5; color: white !important; }
+.mat-calendar-body-today { border-color: rgba(255, 255, 255, 0.5) !important; }
+
+
+/* 
+  4. (¡NUEVO!) CORRECCIÓN PARA LA LÍNEA BLANCA EN FORM FIELDS
+*/
+
+// Estilo para el campo de formulario CUANDO ESTÁ ENFOCADO (haciendo clic)
+.mat-mdc-form-field.mat-focused {
+  
+  // Color de la etiqueta flotante (ej: "Nombre de la Ruta*")
+  .mat-mdc-floating-label {
+    color: #8ab4f8; // Un azul claro y legible como color de acento
+  }
+
+  // Color del borde del outline
+  .mdc-notched-outline > * {
+    border-color: #8ab4f8 !important; // Mismo color de acento. !important es para asegurar la anulación.
+  }
+}
+
+// Estilo para el texto que escribes dentro del campo
+.mat-mdc-form-field .mat-mdc-input-element {
+  color: #ffffff;
+}
+
+/* --- FIN DE CORRECCIONES GLOBALES --- */

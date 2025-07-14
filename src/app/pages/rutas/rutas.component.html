@@ -1,0 +1,32 @@
+
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-subtitle>Planifica las rutas de servicio, entrega o instalación.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="rutaForm" (ngSubmit)="onSubmit()">
+        <div class="datos-generales">
+          <mat-form-field appearance="outline"><mat-label>Nombre de la Ruta</mat-label><input matInput formControlName="nombre"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Tipo de Ruta</mat-label><mat-select formControlName="tipoRuta">@for(tipo of tiposDeRuta; track tipo){<mat-option [value]="tipo">{{ tipo }}</mat-option>}</mat-select></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Fecha Asignada</mat-label><input matInput [matDatepicker]="picker" formControlName="fechaAsignada"><mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle><mat-datepicker #picker></mat-datepicker></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Técnico Responsable</mat-label><mat-select formControlName="tecnicoAsignado">@for(tecnico of tecnicos; track tecnico){<mat-option [value]="tecnico">{{ tecnico }}</mat-option>}</mat-select></mat-form-field>
+        </div>
+        <h3 class="paradas-titulo">Paradas de la Ruta</h3>
+        <div formArrayName="paradas">
+          @for (parada of paradas.controls; track $index) {
+          <div [formGroupName]="$index" class="parada-container">
+            <h4>Parada #{{ $index + 1 }}</h4>
+            <mat-form-field appearance="outline"><mat-label>Nombre del Cliente</mat-label><input matInput formControlName="cliente"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Dirección</mat-label><input matInput formControlName="direccion"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Servicio a Realizar</mat-label><input matInput formControlName="servicio"></mat-form-field>
+            <button mat-icon-button color="warn" type="button" (click)="eliminarParada($index)"><mat-icon>delete</mat-icon></button>
+          </div>
+          }
+        </div>
+        <button mat-stroked-button color="primary" type="button" (click)="agregarParada()"><mat-icon>add_location_alt</mat-icon>Añadir Parada</button>
+        <div class="acciones-form"><button mat-raised-button color="primary" type="submit" [disabled]="!rutaForm.valid"><mat-icon>save</mat-icon>Guardar Ruta</button></div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
