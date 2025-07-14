@@ -7,9 +7,17 @@ export const routes: Routes = [
     path: '',
     component: MainLayoutComponent,
     children: [
-      { path: 'dashboard', component: DashboardComponent },
-      // Aquí puedes añadir las otras rutas cuando crees los componentes
-      // { path: 'rutas', component: RutasComponent },
+      {
+        path: 'dashboard',
+        component: DashboardComponent,
+        data: { title: 'Dashboard' }, // <-- CAMBIO CLAVE: Añade esta línea
+      },
+      // Cuando agregues más rutas, sigue el mismo patrón:
+      // {
+      //   path: 'rutas',
+      //   component: RutasComponent,
+      //   data: { title: 'Gestión de Rutas' }
+      // },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
