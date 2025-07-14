@@ -1,5 +1,20 @@
 // src/styles.scss
 
+// @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+// @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+// html,
+// body {
+//   height: 100%;
+//   margin: 0;
+//   font-family: "Roboto", sans-serif;
+// background-color: #303030;
+//   color: #ffffff;
+// }
+
+/* La regla @use DEBE ser lo primero que se declara. */
+
+/* Fuentes y Estilos Globales */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
@@ -8,6 +23,8 @@ body {
   height: 100%;
   margin: 0;
   font-family: "Roboto", sans-serif;
-  background-color: #303030;
+  /* CAMBIO: Un fondo más oscuro para mayor contraste */
+  background-color: #1c1c1e; /* Negro de iOS */
+
   color: #ffffff;
 }

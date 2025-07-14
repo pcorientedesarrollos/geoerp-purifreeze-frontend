@@ -1,4 +1,4 @@
-.logo-container {
+/* .logo-container {
   height: 69px;
   display: flex;
   justify-content: center;
@@ -28,8 +28,8 @@
 .menu-item.active-link {
   background-color: #2196f3;
   color: #ffffff !important;
-} /* Color azul para el activo */
-.menu-item.active-link mat-icon,
+} Color azul para el activo */
+/* .menu-item.active-link mat-icon,
 .menu-item:hover mat-icon {
   color: #ffffff !important;
 }
@@ -37,6 +37,62 @@
   margin-left: auto;
   transition: transform 0.2s ease-in-out;
 }
+.parent-item .expand-icon.rotated {
+  transform: rotate(180deg);
+} */
+
+.logo-container {
+  height: 64px; /* Altura estándar de la toolbar */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 16px;
+  /* CAMBIO: Borde sutil que coincide con el de la imagen */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+}
+
+.logo-container img {
+  max-width: 80%;
+  max-height: 75%;
+}
+
+.menu-item {
+  display: flex !important;
+  align-items: center !important;
+  height: 48px;
+  margin: 4px 12px;
+  border-radius: 8px;
+  padding: 0 16px !important;
+  /* CAMBIO: Texto inactivo ligeramente más sutil */
+  color: rgba(255, 255, 255, 0.7);
+  box-sizing: border-box;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* El estilo del enlace activo ya es perfecto: azul con texto blanco */
+.menu-item.active-link {
+  background-color: #2196f3; /* Azul primario */
+  color: #ffffff !important;
+  font-weight: 500; /* Le damos más peso al activo */
+}
+
+.menu-item.active-link mat-icon {
+  color: #ffffff !important;
+}
+
+.parent-item {
+  cursor: pointer;
+}
+
+.parent-item .expand-icon {
+  margin-left: auto;
+  transition: transform 0.2s ease-in-out;
+}
+
 .parent-item .expand-icon.rotated {
   transform: rotate(180deg);
 }

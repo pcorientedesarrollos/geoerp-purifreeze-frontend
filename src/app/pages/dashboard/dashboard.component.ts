@@ -56,29 +56,34 @@ export class DashboardComponent implements OnInit {
     const mockCardData = [
       {
         title: 'Vehículos en Ruta',
+        subtitle: 'Datos Actualizados',
         value: '2',
         icon: 'directions_car',
         color: '#2196F3',
       },
       {
         title: 'Distancia Total Hoy',
+        subtitle: 'Datos Actualizados',
         value: '124 km',
         icon: 'timeline',
-        color: '#673ab7',
-      },
+        color: '#2196F3',
+      }, // Usamos azul para consistencia
       {
         title: 'Alertas Recientes',
+        subtitle: 'Datos Actualizados',
         value: '3',
-        icon: 'notifications_active',
-        color: '#ff9800',
-      },
+        icon: 'notifications',
+        color: '#FF9800',
+      }, // Dejaré una en naranja como en la imagen para que veas cómo variarlo
       {
         title: 'Próximo Mantenimiento',
+        subtitle: 'Datos Actualizados',
         value: 'En 5 días',
-        icon: 'calendar_month',
-        color: '#03a9f4',
+        icon: 'calendar_today',
+        color: '#2196F3',
       },
     ];
+
     of(mockCardData)
       .pipe(delay(1000))
       .subscribe((data) => {
