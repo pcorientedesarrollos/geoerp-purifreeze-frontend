@@ -1,4 +1,37 @@
 <h1>Dashboard</h1>
+
+<!-- Contenedor principal para todos los filtros, alineado a la derecha -->
+<div class="filters-container">
+  <!-- Filtro de Mes -->
+  <mat-form-field appearance="outline">
+    <mat-label>Mes</mat-label>
+    <mat-select
+      [(ngModel)]="selectedMonth"
+      (selectionChange)="onFilterChange()"
+    >
+      <!-- Opción para deseleccionar -->
+      <mat-option [value]="undefined">Ninguno</mat-option>
+      <!-- Itera sobre la lista de meses del componente -->
+      @for (month of months; track month.value) {
+      <mat-option [value]="month.value">{{ month.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <!-- Filtro de Año -->
+  <mat-form-field appearance="outline">
+    <mat-label>Año</mat-label>
+    <mat-select [(ngModel)]="selectedYear" (selectionChange)="onFilterChange()">
+      <!-- Opción para deseleccionar -->
+      <mat-option [value]="undefined">Ninguno</mat-option>
+      <!-- Itera sobre la lista de años del componente -->
+      @for (year of years; track year) {
+      <mat-option [value]="year">{{ year }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
 @if (isLoading) {
 <div class="spinner-container">
   <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
@@ -20,22 +53,6 @@
   </mat-card>
   }
 </div>
-<div class="section-header">
-  <h2>Sección de Filtros</h2>
-  <mat-form-field class="dashboard-filter" appearance="outline">
-    <mat-label>Filtrar...</mat-label>
-    <input
-      type="text"
-      matInput
-      [formControl]="filterControl"
-      [matAutocomplete]="auto"
-    />
-    <mat-icon matSuffix>search</mat-icon>
-    <mat-autocomplete #auto="matAutocomplete">
-      @for (option of filteredOptions$ | async; track option) {
-      <mat-option [value]="option">{{ option }}</mat-option>
-      }
-    </mat-autocomplete>
-  </mat-form-field>
-</div>
 }
+
+<!-- Se eliminó el antiguo ".section-header" de aquí -->

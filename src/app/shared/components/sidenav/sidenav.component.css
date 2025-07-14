@@ -70,12 +70,16 @@
 }
 
 .menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  /* background-color: rgba(255, 255, 255, 0.08); */
+
+  background-color: rgba(33, 150, 243, 0.22);
+
+  color: rgba(255, 255, 255, 1);
 }
 
 /* El estilo del enlace activo ya es perfecto: azul con texto blanco */
 .menu-item.active-link {
-  background-color: #2196f3; /* Azul primario */
+  background-color: #3030c9;
   color: #ffffff !important;
   font-weight: 500; /* Le damos más peso al activo */
 }
