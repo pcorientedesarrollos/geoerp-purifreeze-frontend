@@ -1,0 +1,20 @@
+<div class="login-container">
+  <div class="login-box">
+    <h1>Iniciar Sesión</h1>
+    <p>Coloca tu rostro en el centro del recuadro.</p>
+    <div class="video-container">
+      <!-- El video de la cámara web se mostrará aquí -->
+      <video #videoElement autoplay muted playsinline></video>
+      <!-- Usaremos un canvas para dibujar encima del video (ej. un recuadro) -->
+      <canvas #canvasElement></canvas>
+    </div>
+
+    @if (statusMessage) {
+    <p class="status">{{ statusMessage }}</p>
+    }
+
+    <button mat-stroked-button (click)="switchToPasswordLogin()">
+      O iniciar sesión con contraseña
+    </button>
+  </div>
+</div>

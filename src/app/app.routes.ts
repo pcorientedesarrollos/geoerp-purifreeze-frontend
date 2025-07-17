@@ -6,8 +6,15 @@ import { RutasComponent } from './pages/rutas/rutas.component';
 // --- CAMBIO: Importa los nuevos componentes que acabamos de crear ---
 import { ServiciosComponent } from './pages/servicios/servicios.component';
 import { ClientesComponent } from './pages/catalogs/clientes/clientes.component';
+import { LoginComponent } from './pages/login/login.component';
 
 export const routes: Routes = [
+  {
+    path: 'login',
+    component: LoginComponent,
+    data: { title: 'Inicio de Sesión' }, // <-- se puede cambiar el nombre
+  },
+
   {
     path: '',
     component: MainLayoutComponent,
@@ -37,7 +44,7 @@ export const routes: Routes = [
       {
         path: 'rutas',
         component: RutasComponent,
-        data: { title: 'Gestión de Rutas' }
+        data: { title: 'Gestión de Rutas' },
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
