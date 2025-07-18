@@ -1,31 +1,87 @@
-
-<div class="form-container">
+<div class="form-page-container">
   <mat-card>
     <mat-card-header>
-      <mat-card-subtitle>Planifica las rutas de servicio, entrega o instalación.</mat-card-subtitle>
+      <mat-card-title>Crear Nueva Ruta</mat-card-title>
+      <mat-card-subtitle>Asigna un operador, transporte y fecha, luego define las paradas.</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
       <form [formGroup]="rutaForm" (ngSubmit)="onSubmit()">
-        <div class="datos-generales">
-          <mat-form-field appearance="outline"><mat-label>Nombre de la Ruta</mat-label><input matInput formControlName="nombre"></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Tipo de Ruta</mat-label><mat-select formControlName="tipoRuta">@for(tipo of tiposDeRuta; track tipo){<mat-option [value]="tipo">{{ tipo }}</mat-option>}</mat-select></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Fecha Asignada</mat-label><input matInput [matDatepicker]="picker" formControlName="fechaAsignada"><mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle><mat-datepicker #picker></mat-datepicker></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Técnico Responsable</mat-label><mat-select formControlName="tecnicoAsignado">@for(tecnico of tecnicos; track tecnico){<mat-option [value]="tecnico">{{ tecnico }}</mat-option>}</mat-select></mat-form-field>
+        <!-- ENCABEZADO DE LA RUTA -->
+        <div class="form-grid section-container">
+          <mat-form-field appearance="outline">
+            <mat-label>Operador</mat-label>
+            <mat-select formControlName="idUsuario" required>
+              @for(op of operadores; track op.idUsuario){ <mat-option [value]="op.idUsuario">{{ op.nombre }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Unidad de Transporte</mat-label>
+            <mat-select formControlName="idUnidadTransporte" required>
+              @for(unidad of unidades; track unidad.idUnidadTransporte){ <mat-option [value]="unidad.idUnidadTransporte">{{ unidad.nombreUnidad }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de la Ruta</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="fecha_hora" required>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
         </div>
-        <h3 class="paradas-titulo">Paradas de la Ruta</h3>
+
+        <h3 class="section-title">Paradas de la Ruta</h3>
+
+        <!-- LISTA DINÁMICA DE PARADAS -->
         <div formArrayName="paradas">
           @for (parada of paradas.controls; track $index) {
           <div [formGroupName]="$index" class="parada-container">
-            <h4>Parada #{{ $index + 1 }}</h4>
-            <mat-form-field appearance="outline"><mat-label>Nombre del Cliente</mat-label><input matInput formControlName="cliente"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Dirección</mat-label><input matInput formControlName="direccion"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Servicio a Realizar</mat-label><input matInput formControlName="servicio"></mat-form-field>
-            <button mat-icon-button color="warn" type="button" (click)="eliminarParada($index)"><mat-icon>delete</mat-icon></button>
+            <div class="parada-header">
+              <h4>Parada #{{ $index + 1 }}</h4>
+              <button mat-icon-button color="warn" type="button" (click)="eliminarParada($index)" aria-label="Eliminar parada">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Cliente</mat-label>
+                <mat-select formControlName="idCliente" required (selectionChange)="onClienteSeleccionado($event.value, $index)">
+                  <!-- ================== CAMBIO IMPORTANTE AQUÍ ================== -->
+                  @for(cliente of clientes; track cliente.idcliente){ <mat-option [value]="cliente.idcliente">{{ cliente.razon_social }}</mat-option> }
+                  <!-- ========================================================== -->
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Sucursal</mat-label>
+                <mat-select formControlName="idSucursal" required>
+                  <mat-option>-- Selecciona cliente --</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Dirección</mat-label>
+                <input matInput formControlName="direccion" required placeholder="Se llenará con la sucursal">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Tipo de Servicio</mat-label>
+                <mat-select formControlName="idTipoServicio" required>
+                  @for(tipo of tiposDeServicio; track tipo.idTipoServicio){ <mat-option [value]="tipo.idTipoServicio">{{ tipo.nombre }}</mat-option> }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width-field">
+                <mat-label>Notas Adicionales (Opcional)</mat-label>
+                <textarea matInput formControlName="notas" rows="2"></textarea>
+              </mat-form-field>
+            </div>
           </div>
           }
         </div>
-        <button mat-stroked-button color="primary" type="button" (click)="agregarParada()"><mat-icon>add_location_alt</mat-icon>Añadir Parada</button>
-        <div class="acciones-form"><button mat-raised-button color="primary" type="submit" [disabled]="!rutaForm.valid"><mat-icon>save</mat-icon>Guardar Ruta</button></div>
+
+        <div class="form-actions">
+          <button mat-stroked-button color="primary" type="button" (click)="agregarParada()">
+            <mat-icon>add_location_alt</mat-icon> Añadir Parada
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="!rutaForm.valid">
+            <mat-icon>save</mat-icon> Guardar Ruta
+          </button>
+        </div>
       </form>
     </mat-card-content>
   </mat-card>

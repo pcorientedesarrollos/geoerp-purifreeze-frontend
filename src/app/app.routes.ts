@@ -33,12 +33,12 @@ export const routes: Routes = [
         component: ClientesComponent,
         data: { title: 'Catálogo de Clientes' },
       },
-      // Cuando agregues más rutas, sigue el mismo patrón:
-      {
-        path: 'rutas',
-        component: RutasComponent,
-        data: { title: 'Gestión de Rutas' }
-      },
+      // // Cuando agregues más rutas, sigue el mismo patrón:
+      // {
+      //   path: 'rutas',
+      //   component: RutasComponent,
+      //   data: { title: 'Gestión de Rutas' }
+      // },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

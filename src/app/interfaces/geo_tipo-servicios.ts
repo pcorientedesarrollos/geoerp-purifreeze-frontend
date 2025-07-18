@@ -1,6 +1,5 @@
 export interface GeoTipoServicio {
-  id: number;         // O el tipo de dato que uses para el ID (string, etc.)
+  idTipoServicio: number;
   nombre: string;
-  descripcion?: string;
-  activo: number;
+  estado: number;
 }

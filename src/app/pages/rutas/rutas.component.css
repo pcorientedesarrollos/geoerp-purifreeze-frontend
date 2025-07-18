@@ -1,68 +1,63 @@
-
-:host { 
-  display: block; 
-  padding: 24px; 
+:host {
+  display: block;
 }
-.form-container mat-card { max-width: 800px; margin: 0 auto; }
-form { display: flex; flex-direction: column; }
-.datos-generales { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-.paradas-titulo { margin-top: 24px; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 8px; }
-.parada-container { position: relative; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; border: 1px dashed rgba(255, 255, 255, 0.3); padding: 16px; margin-bottom: 16px; border-radius: 8px; }
-.parada-container h4 { grid-column: 1 / -1; margin-top: 0; }
-.parada-container mat-form-field:nth-of-type(3) { grid-column: 1 / -1; }
-.parada-container button[mat-icon-button] { position: absolute; top: 8px; right: 8px; }
-button[mat-stroked-button] { margin-top: 8px; align-self: flex-start; }
-.acciones-form { display: flex; justify-content: flex-end; margin-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 16px; }
 
-/* 
-================================================================
-  INICIO DE CORRECCIÓN DEFINITIVA PARA FORM FIELDS EN TEMA OSCURO
-================================================================
-*/
-:host ::ng-deep {
-
-  /* --- 1. ESTILO PARA EL ESTADO DE REPOSO (NO ENFOCADO) --- */
-  .mat-mdc-form-field {
-
-    /* Color de la etiqueta (ej: "Nombre de la Ruta*") */
-    .mat-mdc-floating-label, .mat-label {
-      color: rgba(255, 255, 255, 0.7); /* Un blanco no tan brillante */
-    }
-
-    /* Color del borde del outline en reposo */
-    .mdc-notched-outline > * {
-      border-color: rgba(255, 255, 255, 0.3) !important; /* Un borde sutil pero visible */
-    }
-
-    /* Color de los iconos (calendario, flecha de select) */
-    .mat-icon, .mat-datepicker-toggle-default-icon {
-      color: rgba(255, 255, 255, 0.7);
-    }
-  }
-
-  /* --- 2. ESTILO PARA EL ESTADO ENFOCADO (AL HACER CLIC) --- */
-  .mat-mdc-form-field.mat-focused {
-    
-    .mat-mdc-floating-label {
-      color: #8ab4f8; /* Color de acento azul */
-    }
-
-    .mdc-notched-outline > * {
-      border-color: #8ab4f8 !important; /* Color de acento azul */
-    }
-  }
-
-  /* --- 3. ESTILOS PARA EL TEXTO DENTRO DE LOS CAMPOS --- */
-
-  /* Texto que se escribe */
-  .mat-mdc-form-field .mat-mdc-input-element {
-    color: #ffffff;
-  }
-  
-  /* Texto ya seleccionado en un mat-select */
-  .mat-mdc-select-value {
-    color: #ffffff;
-  }
-
+.form-page-container {
+  padding: 24px;
 }
-/* --- FIN DE CORRECCIÓN --- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.section-container {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.full-width-field {
+  grid-column: 1 / -1;
+}
+
+.section-title {
+  margin-top: 32px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 500;
+  font-size: 1.2em;
+}
+
+.parada-container {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.parada-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.parada-header h4 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #90caf9; /* Color de acento */
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}

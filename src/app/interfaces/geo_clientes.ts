@@ -1,7 +1,6 @@
 export interface GeoCliente {
 
   idcliente: number;
-  nombreComercial?: string; // Opcional porque es nullable
   razon_social?: string; // Opcional porque es nullable
   rfc: string;
   nombreEncargado?: string;
@@ -13,4 +12,5 @@ export interface GeoCliente {
   estado: string;
   codigoPostal: string;
   nombreArchivo?: string;
+  nombreComercial?: string; // Opcional porque es nullable
 }
