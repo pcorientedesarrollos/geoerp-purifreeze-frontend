@@ -1,11 +1,12 @@
 <div class="login-container">
   <div class="login-box">
-    <h1>Iniciar Sesión</h1>
+    <!-- MODO DE LOGIN FACIAL -->
+    @if (loginMode === 'face') {
+    <h1>Reconocimiento Facial</h1>
     <p>Coloca tu rostro en el centro del recuadro.</p>
+
     <div class="video-container">
-      <!-- El video de la cámara web se mostrará aquí -->
       <video #videoElement autoplay muted playsinline></video>
-      <!-- Usaremos un canvas para dibujar encima del video (ej. un recuadro) -->
       <canvas #canvasElement></canvas>
     </div>
 
@@ -16,5 +17,19 @@
     <button mat-stroked-button (click)="switchToPasswordLogin()">
       O iniciar sesión con contraseña
     </button>
+    }
+
+    <!-- MODO DE LOGIN CON CONTRASEÑA -->
+    @if (loginMode === 'password') {
+    <h1>Iniciar Sesión</h1>
+    <p>Ingresa tus credenciales.</p>
+
+    <!-- Aquí iría tu formulario de login con contraseña -->
+    <p style="margin: 40px 0">(Formulario de contraseña no implementado)</p>
+
+    <button mat-stroked-button (click)="switchToFaceLogin()">
+      O iniciar sesión con rostro
+    </button>
+    }
   </div>
 </div>

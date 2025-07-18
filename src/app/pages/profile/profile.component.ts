@@ -1,0 +1,115 @@
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { isPlatformBrowser, CommonModule } from '@angular/common'; // <-- Importaciones actualizadas
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import * as faceapi from 'face-api.js';
+import { AuthService } from '../../services/auth/auth.service';
+
+@Component({
+  selector: 'app-profile',
+  standalone: true,
+  imports: [CommonModule, MatButtonModule, MatDividerModule],
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.css'],
+})
+export class ProfileComponent {
+  @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
+
+  // Inyección de servicios y tokens
+  private readonly authService = inject(AuthService);
+  private readonly platformId = inject(PLATFORM_ID); // <-- Inyectamos el PLATFORM_ID
+
+  public statusMessage: string = '';
+  public isCameraOn = false;
+  private videoStream?: MediaStream;
+
+  async activateFacialLogin(): Promise<void> {
+    // --- CAMBIO CLAVE AQUÍ ---
+    // Comprobamos si estamos en el navegador antes de hacer nada.
+    if (!isPlatformBrowser(this.platformId)) {
+      this.statusMessage =
+        'La activación facial solo está disponible en el navegador.';
+      return;
+    }
+
+    this.isCameraOn = true;
+    this.statusMessage = 'Cargando modelos de IA, por favor espera...';
+
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('/assets/models'),
+      faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models'),
+      faceapi.nets.faceRecognitionNet.loadFromUri('/assets/models'),
+    ]);
+
+    this.startCamera();
+  }
+
+  private async startCamera(): Promise<void> {
+    if (!this.videoElement) return;
+
+    try {
+      this.videoStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      this.videoElement.nativeElement.srcObject = this.videoStream;
+      this.statusMessage = 'Cámara activada. Mira fijamente a la cámara.';
+      this.videoElement.nativeElement.onplaying = () => this.captureFace();
+    } catch (err) {
+      this.statusMessage = 'Error al acceder a la cámara. Revisa los permisos.';
+      this.isCameraOn = false;
+    }
+  }
+
+  private async captureFace(): Promise<void> {
+    if (!this.videoElement || !this.canvasElement) return;
+
+    this.statusMessage = 'Detectando rostro...';
+
+    const displaySize = {
+      width: this.videoElement.nativeElement.videoWidth,
+      height: this.videoElement.nativeElement.videoHeight,
+    };
+    faceapi.matchDimensions(this.canvasElement.nativeElement, displaySize);
+
+    const detectionInterval = setInterval(async () => {
+      const detection = await faceapi
+        .detectSingleFace(
+          this.videoElement!.nativeElement,
+          new faceapi.TinyFaceDetectorOptions()
+        )
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (detection) {
+        clearInterval(detectionInterval);
+        this.statusMessage = '¡Rostro detectado! Guardando en tu perfil...';
+        this.stopCamera();
+
+        const descriptorArray = Array.from(detection.descriptor);
+
+        this.authService.registerFace(descriptorArray).subscribe({
+          next: (response) => {
+            this.statusMessage = `${response.message} ¡Ya puedes usar el login facial!`;
+            this.isCameraOn = false;
+          },
+          error: (err) => {
+            this.statusMessage =
+              'Error al guardar el rostro. Puede que tu sesión haya expirado. Inténtalo de nuevo.';
+            this.isCameraOn = false;
+          },
+        });
+      }
+    }, 500);
+  }
+
+  private stopCamera(): void {
+    this.videoStream?.getTracks().forEach((track) => track.stop());
+  }
+}

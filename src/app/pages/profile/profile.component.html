@@ -1,0 +1,32 @@
+<h2>Mi Perfil</h2>
+<p>Desde aquí puedes gestionar la configuración de tu cuenta.</p>
+
+<mat-divider></mat-divider>
+
+<div class="facial-login-section">
+  <h3>Inicio de Sesión Facial</h3>
+  <p>
+    Activa el inicio de sesión con tu rostro para un acceso más rápido y seguro.
+  </p>
+
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="activateFacialLogin()"
+    [disabled]="isCameraOn"
+  >
+    Activar Reconocimiento Facial
+  </button>
+
+  @if (statusMessage) {
+  <p class="status-message">{{ statusMessage }}</p>
+  }
+
+  <!-- El contenedor de la cámara solo aparece cuando se activa -->
+  @if (isCameraOn) {
+  <div class="video-container">
+    <video #videoElement autoplay muted playsinline></video>
+    <canvas #canvasElement></canvas>
+  </div>
+  }
+</div>

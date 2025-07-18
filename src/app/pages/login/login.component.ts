@@ -4,10 +4,15 @@ import {
   ViewChild,
   ElementRef,
   OnDestroy,
+  inject,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { isPlatformBrowser, CommonModule } from '@angular/common'; // <-- Importaciones actualizadas
 import { MatButtonModule } from '@angular/material/button';
+import { Router } from '@angular/router';
 import * as faceapi from 'face-api.js';
+import { AuthService, FaceLoginData } from '../../services/auth/auth.service';
+// import { AuthService, FaceLoginData } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -17,49 +22,113 @@ import * as faceapi from 'face-api.js';
   styleUrls: ['./login.component.css'],
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
-  @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
 
-  public statusMessage: string = 'Cargando modelos de IA...';
+  // Inyección de servicios y tokens
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID); // <-- Inyectamos el PLATFORM_ID
+
+  public statusMessage: string = 'Iniciando...'; // Mensaje inicial genérico
+  public loginMode: 'face' | 'password' = 'face';
+
   private videoStream?: MediaStream;
   private detectionInterval: any;
+  private faceMatcher?: faceapi.FaceMatcher;
 
   async ngOnInit(): Promise<void> {
-    await this.loadModels();
-    this.startCamera();
-  }
-
-  ngOnDestroy(): void {
-    // Detener la cámara y el intervalo al destruir el componente
-    this.stopCamera();
-    if (this.detectionInterval) {
-      clearInterval(this.detectionInterval);
+    // --- CAMBIO CLAVE AQUÍ ---
+    // Solo ejecutamos la lógica de face-api si estamos en un navegador.
+    if (isPlatformBrowser(this.platformId)) {
+      await this.setupFaceApi();
+    } else {
+      this.statusMessage =
+        'El reconocimiento facial solo está disponible en el navegador.';
     }
   }
 
-  private async loadModels(): Promise<void> {
-    // Los modelos deben estar en tu carpeta /assets/models
-    // Debes descargarlos del repositorio de face-api.js
-    await faceapi.nets.tinyFaceDetector.loadFromUri('/assets/models');
-    await faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models');
-    await faceapi.nets.faceRecognitionNet.loadFromUri('/assets/models');
-    this.statusMessage = 'Modelos cargados. Iniciando cámara...';
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.stopCamera();
+      if (this.detectionInterval) {
+        clearInterval(this.detectionInterval);
+      }
+    }
+  }
+
+  // --- MÉTODOS DE CAMBIO DE MODO ---
+  switchToPasswordLogin(): void {
+    this.loginMode = 'password';
+    if (isPlatformBrowser(this.platformId)) {
+      this.stopCamera();
+    }
+  }
+
+  switchToFaceLogin(): void {
+    this.loginMode = 'face';
+    // Usamos un pequeño delay para que la vista se renderice antes de iniciar la cámara
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => this.setupFaceApi(), 0);
+    }
+  }
+
+  // --- LÓGICA DE RECONOCIMIENTO FACIAL ---
+  private async setupFaceApi(): Promise<void> {
+    this.statusMessage = 'Cargando modelos de IA...';
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('/assets/models'),
+      faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models'),
+      faceapi.nets.faceRecognitionNet.loadFromUri('/assets/models'),
+    ]);
+
+    this.statusMessage = 'Obteniendo datos de rostros...';
+    await this.loadFaceLoginData();
+
+    this.startCamera();
+  }
+
+  private async loadFaceLoginData(): Promise<void> {
+    try {
+      // Usamos .toPromise() que es más antiguo. En Angular moderno se usa lastValueFrom.
+      const faceData = await (
+        this.authService.getFaceLoginData() as any
+      ).toPromise();
+      if (!faceData || faceData.length === 0) {
+        this.statusMessage = 'No hay rostros registrados. Usa tu contraseña.';
+        this.faceMatcher = undefined; // Aseguramos que no haya un matcher antiguo
+        return;
+      }
+
+      const labeledFaceDescriptors = faceData.map((data: FaceLoginData) => {
+        const descriptorArray = JSON.parse(data.descriptor_facial);
+        return new faceapi.LabeledFaceDescriptors(data.idUsuario.toString(), [
+          new Float32Array(descriptorArray),
+        ]);
+      });
+
+      this.faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
+      this.statusMessage = 'Listo para escanear.';
+    } catch (error) {
+      this.statusMessage =
+        'Error al cargar datos de rostros desde el servidor.';
+      console.error(error);
+    }
   }
 
   private async startCamera(): Promise<void> {
+    if (!this.videoElement) return;
+
     try {
       this.videoStream = await navigator.mediaDevices.getUserMedia({
-        video: {},
+        video: true,
       });
       this.videoElement.nativeElement.srcObject = this.videoStream;
-      this.statusMessage = 'Cámara iniciada. ¡Sonríe!';
-
-      this.videoElement.nativeElement.onplaying = () => {
+      this.videoElement.nativeElement.onplaying = () =>
         this.startFaceDetection();
-      };
     } catch (err) {
-      this.statusMessage = 'Error al acceder a la cámara.';
-      console.error('Error al acceder a la cámara:', err);
+      this.statusMessage = 'Error al acceder a la cámara. Revisa los permisos.';
+      console.error(err);
     }
   }
 
@@ -68,6 +137,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private startFaceDetection(): void {
+    if (!this.videoElement || !this.canvasElement) return;
+
     const displaySize = {
       width: this.videoElement.nativeElement.videoWidth,
       height: this.videoElement.nativeElement.videoHeight,
@@ -75,63 +146,63 @@ export class LoginComponent implements OnInit, OnDestroy {
     faceapi.matchDimensions(this.canvasElement.nativeElement, displaySize);
 
     this.detectionInterval = setInterval(async () => {
+      if (!this.faceMatcher) return;
+
       const detections = await faceapi
-        .detectSingleFace(
-          this.videoElement.nativeElement,
+        .detectAllFaces(
+          this.videoElement!.nativeElement,
           new faceapi.TinyFaceDetectorOptions()
         )
         .withFaceLandmarks()
-        .withFaceDescriptor();
+        .withFaceDescriptors();
 
-      const context = this.canvasElement.nativeElement.getContext('2d');
+      const context = this.canvasElement!.nativeElement.getContext('2d');
       if (!context) return;
       context.clearRect(0, 0, displaySize.width, displaySize.height);
 
-      if (detections) {
-        // Dibujar un recuadro alrededor del rostro detectado
+      if (detections.length > 0) {
         const resizedDetections = faceapi.resizeResults(
           detections,
           displaySize
         );
-        faceapi.draw.drawDetections(
-          this.canvasElement.nativeElement,
-          resizedDetections
+        const results = resizedDetections.map((d) =>
+          this.faceMatcher!.findBestMatch(d.descriptor)
         );
 
-        // Aquí es donde realizarías el login
-        this.statusMessage = 'Rostro detectado. Verificando...';
-        this.attemptLogin(detections.descriptor);
-        clearInterval(this.detectionInterval); // Detenemos la detección tras un intento
+        results.forEach((result, i) => {
+          const box = resizedDetections[i].detection.box;
+          const drawBox = new faceapi.draw.DrawBox(box, {
+            label:
+              result.label === 'unknown' ? 'Desconocido' : 'Usuario reconocido',
+          });
+          drawBox.draw(this.canvasElement!.nativeElement);
+
+          if (result.label !== 'unknown') {
+            this.attemptLogin(parseInt(result.label, 10));
+          }
+        });
       }
-    }, 500); // Revisa cada medio segundo
+    }, 300);
   }
 
-  private attemptLogin(descriptor: Float32Array): void {
-    // 1. Detener la cámara para que el usuario sepa que algo pasó
+  private attemptLogin(userId: number): void {
+    if (!userId) return;
+
+    this.statusMessage = '¡Usuario reconocido! Autenticando...';
     this.stopCamera();
+    clearInterval(this.detectionInterval);
 
-    // 2. En un proyecto real, enviarías esto al backend
-    console.log('Descriptor facial para enviar al backend:', descriptor);
-    this.statusMessage = 'Enviando datos al servidor...';
-
-    // ---- LÓGICA DE BACKEND (SIMULADA) ----
-    // fetch('/api/auth/login-facial', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ descriptor: Array.from(descriptor) })
-    // }).then(res => res.json()).then(result => {
-    //   if (result.isAuthenticated) {
-    //     // Guardar el token JWT y redirigir al dashboard
-    //     this.statusMessage = `¡Bienvenido, ${result.userName}!`;
-    //     // this.router.navigate(['/dashboard']);
-    //   } else {
-    //     this.statusMessage = 'Usuario no reconocido. Intenta con contraseña.';
-    //   }
-    // });
-  }
-
-  switchToPasswordLogin(): void {
-    // Aquí navegarías a una vista de login con campos de usuario/contraseña
-    console.log('Cambiando a login con contraseña');
+    this.authService.loginByUserId(userId).subscribe({
+      next: (response) => {
+        this.statusMessage = '¡Bienvenido!';
+        localStorage.setItem('access_token', response.access_token);
+        this.router.navigate(['/dashboard']);
+      },
+      error: () => {
+        this.statusMessage = 'Error de autenticación. Intenta con contraseña.';
+        // Reiniciamos la cámara para un nuevo intento
+        setTimeout(() => this.switchToFaceLogin(), 2000);
+      },
+    });
   }
 }

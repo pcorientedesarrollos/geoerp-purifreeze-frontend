@@ -1,30 +1,39 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { LoginComponent } from './pages/login/login.component';
 import { RutasComponent } from './pages/rutas/rutas.component';
-
-// --- CAMBIO: Importa los nuevos componentes que acabamos de crear ---
 import { ServiciosComponent } from './pages/servicios/servicios.component';
 import { ClientesComponent } from './pages/catalogs/clientes/clientes.component';
-import { LoginComponent } from './pages/login/login.component';
+
+// Importaciones para la nueva funcionalidad
+import { ProfileComponent } from './pages/profile/profile.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
+  // --- RUTA PÚBLICA ---
+  // La página de login es la única a la que se puede acceder sin estar autenticado.
   {
     path: 'login',
     component: LoginComponent,
-    data: { title: 'Inicio de Sesión' }, // <-- se puede cambiar el nombre
+    // No necesita título aquí, ya que está fuera del layout principal
   },
 
+  // --- RUTAS PROTEGIDAS ---
+  // Este es el contenedor principal de la aplicación.
   {
     path: '',
     component: MainLayoutComponent,
+    // --- CAMBIO CLAVE: El guardián protege a este componente y a TODOS sus hijos ---
+    canActivate: [authGuard],
     children: [
+      // Si el usuario está autenticado, puede acceder a cualquiera de estas rutas:
       {
         path: 'dashboard',
         component: DashboardComponent,
         data: { title: 'Dashboard' },
+        // Ya no necesitamos el canActivate aquí, porque el padre ya lo tiene.
       },
-      // --- CAMBIO: Añade las nuevas rutas aquí ---
       {
         path: 'rutas',
         component: RutasComponent,
@@ -40,14 +49,19 @@ export const routes: Routes = [
         component: ClientesComponent,
         data: { title: 'Catálogo de Clientes' },
       },
-      // Cuando agregues más rutas, sigue el mismo patrón:
+      // --- CAMBIO CLAVE: Añadimos la nueva ruta para el perfil ---
       {
-        path: 'rutas',
-        component: RutasComponent,
-        data: { title: 'Gestión de Rutas' },
+        path: 'profile',
+        component: ProfileComponent,
+        data: { title: 'Mi Perfil' },
       },
+
+      // La redirección por defecto DENTRO del layout principal
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
-  { path: '**', redirectTo: '' },
+
+  // --- RUTA "CATCH-ALL" ---
+  // Si ninguna de las rutas anteriores coincide, redirige al login.
+  { path: '**', redirectTo: 'login' },
 ];
