@@ -1,0 +1,41 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #303030; /* Mismo fondo que el resto de la app */
+}
+
+.login-container {
+  text-align: center;
+  color: white;
+}
+
+.login-box {
+  background-color: #424242;
+  padding: 32px;
+  border-radius: 8px;
+  width: 400px;
+}
+
+.video-container {
+  position: relative;
+  width: 320px;
+  height: 240px;
+  margin: 16px auto;
+  border: 1px solid #ffffff30;
+}
+
+video,
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.status {
+  font-weight: 500;
+  min-height: 20px;
+}
