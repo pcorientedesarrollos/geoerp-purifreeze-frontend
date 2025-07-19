@@ -94,6 +94,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       const faceData = await (
         this.authService.getFaceLoginData() as any
       ).toPromise();
+      console.log('Respuesta cruda del backend:', faceData);
       if (!faceData || faceData.length === 0) {
         this.statusMessage = 'No hay rostros registrados. Usa tu contraseña.';
         this.faceMatcher = undefined; // Aseguramos que no haya un matcher antiguo
@@ -106,7 +107,10 @@ export class LoginComponent implements OnInit, OnDestroy {
           new Float32Array(descriptorArray),
         ]);
       });
-
+      console.log(
+        'Descriptores procesados para FaceMatcher:',
+        labeledFaceDescriptors
+      );
       this.faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
       this.statusMessage = 'Listo para escanear.';
     } catch (error) {
