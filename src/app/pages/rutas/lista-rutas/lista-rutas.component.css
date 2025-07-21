@@ -1,0 +1,66 @@
+.list-page-container {
+  padding: 24px;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.list-header h1 {
+  margin: 0;
+  font-weight: 500;
+}
+
+.table-container {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+}
+
+/* Centrar los botones de acción */
+td.mat-mdc-cell:last-of-type {
+  text-align: right;
+}
+th.mat-mdc-header-cell:last-of-type {
+  text-align: right;
+}
+/* Colores claros para texto y bordes de tabla en modo oscuro */
+.table-container table {
+  color: #f1f1f1;
+  background-color: #1e1e1e;
+}
+
+.mat-mdc-header-cell,
+.mat-mdc-cell {
+  color: #f1f1f1 !important;
+  background-color: #1e1e1e !important;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+/* Botones de acción en modo oscuro */
+.mat-icon-button {
+  color: #90caf9 !important; /* Azul claro */
+}
+
+/* Encabezado */
+.list-header h1 {
+  color: #ffffff;
+}
+
+/* Mensaje de "No se encontraron rutas" */
+.no-data-cell {
+  text-align: center;
+  color: #cccccc;
+  font-style: italic;
+}
+
+/* Spinner o textos de carga */
+.loading-container p {
+  color: #ffffff;
+}

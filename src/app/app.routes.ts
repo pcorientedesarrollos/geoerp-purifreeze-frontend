@@ -36,7 +36,8 @@ export const routes: Routes = [
       },
       {
         path: 'rutas',
-        component: RutasComponent,
+        loadChildren: () =>
+          import('./pages/rutas/rutas.routes').then((m) => m.RUTAS_ROUTES),
         data: { title: 'Gestión de Rutas' },
       },
       {
