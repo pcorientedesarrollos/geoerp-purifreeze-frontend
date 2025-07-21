@@ -32,7 +32,6 @@ export const routes: Routes = [
         path: 'dashboard',
         component: DashboardComponent,
         data: { title: 'Dashboard' },
-        // Ya no necesitamos el canActivate aquí, porque el padre ya lo tiene.
       },
       {
         path: 'rutas',
@@ -45,18 +44,19 @@ export const routes: Routes = [
         component: ServiciosComponent,
         data: { title: 'Servicios' },
       },
-      {
-        path: 'catalogs/clientes',
-        component: ClientesComponent,
-        data: { title: 'Catálogo de Clientes' },
-      },
-      // --- CAMBIO CLAVE: Añadimos la nueva ruta para el perfil ---
-      {
-        path: 'profile',
-        component: ProfileComponent,
-        data: { title: 'Mi Perfil' },
-      },
+      // {
+      //   path: 'catalogs/clientes',
+      //   component: ClientesComponent,
+      //   data: { title: 'Catálogo de Clientes' },
+      // },
 
+      {
+        path:'catalogs',
+        loadChildren: () =>
+          import('./pages/catalogs/catalogos.routes').then(
+            (routes) => routes.catalogosRoutes)
+      },
+      
       // La redirección por defecto DENTRO del layout principal
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
