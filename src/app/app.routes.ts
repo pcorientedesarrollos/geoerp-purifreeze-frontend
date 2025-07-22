@@ -51,14 +51,16 @@ export const routes: Routes = [
       // },
 
       {
-        path:'catalogs',
+        path: 'catalogs',
         loadChildren: () =>
           import('./pages/catalogs/catalogos.routes').then(
-            (routes) => routes.catalogosRoutes)
+            (routes) => routes.catalogosRoutes
+          ),
       },
-      
+
       // La redirección por defecto DENTRO del layout principal
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'profile', component: ProfileComponent },
     ],
   },
 
