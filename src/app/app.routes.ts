@@ -60,7 +60,11 @@ export const routes: Routes = [
 
       // La redirección por defecto DENTRO del layout principal
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'profile', component: ProfileComponent },
+      {
+        path: 'profile',
+        component: ProfileComponent,
+        data: { title: 'Perfil' },
+      },
     ],
   },
 
