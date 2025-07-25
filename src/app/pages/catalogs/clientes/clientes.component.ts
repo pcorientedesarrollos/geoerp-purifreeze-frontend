@@ -25,27 +25,26 @@ export interface ClienteDisplayData {
 @Component({
   selector: 'app-clientes',
   standalone: true, // Declaramos el componente como Standalone
-  imports: [
-    CommonModule,
-    MatTableModule,
-    MatIconModule,
-    MatButtonModule
-  ],
+  imports: [CommonModule, MatTableModule, MatIconModule, MatButtonModule],
   templateUrl: './clientes.component.html',
-  styleUrls: ['./clientes.component.css']
+  styleUrls: ['./clientes.component.css'],
 })
 export class ClientesComponent implements OnInit {
-
   // Columnas que se mostrarán en la tabla. 'acciones' es para los botones de editar/eliminar
-  displayedColumns: string[] = ['razon_social', 'direccion', 'nombreSucursal', 'acciones'];
-  
+  displayedColumns: string[] = [
+    'razon_social',
+    'direccion',
+    'nombreSucursal',
+    'acciones',
+  ];
+
   // Aquí guardaremos la lista de clientes combinada para mostrarla en la tabla
   dataSource: ClienteDisplayData[] = [];
 
   constructor(
     private geoClientesService: GeoClientesService,
     private geoClientesDireccionService: GeoClientesDireccionService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.cargarDatos();
@@ -55,28 +54,28 @@ export class ClientesComponent implements OnInit {
     // Usamos forkJoin para ejecutar ambas llamadas a la API en paralelo
     forkJoin({
       clientes: this.geoClientesService.getClientes(),
-      direcciones: this.geoClientesDireccionService.getClientesDireccion()
+      direcciones: this.geoClientesDireccionService.getClientesDireccion(),
     }).subscribe({
       next: (data) => {
         // Creamos un mapa de clientes para una búsqueda eficiente por ID
         const clientesMap = new Map<number, GeoCliente>(
-          data.clientes.map(cliente => [cliente.idcliente, cliente])
+          data.clientes.map((cliente) => [cliente.idcliente, cliente])
         );
 
         // Combinamos los datos de direcciones con los datos de clientes
-        this.dataSource = data.direcciones.map(direccion => {
+        this.dataSource = data.direcciones.map((direccion) => {
           const clienteInfo = clientesMap.get(direccion.idCliente);
           return {
             ...direccion,
             razon_social: clienteInfo?.razon_social,
-            nombreComercial: clienteInfo?.nombreComercial
+            nombreComercial: clienteInfo?.nombreComercio,
           };
         });
       },
       error: (err) => {
         console.error('Error al cargar los datos', err);
         // Aquí podrías mostrar un mensaje de error al usuario
-      }
+      },
     });
   }
 

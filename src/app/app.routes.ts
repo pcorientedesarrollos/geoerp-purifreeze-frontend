@@ -9,6 +9,7 @@ import { ClientesComponent } from './pages/catalogs/clientes/clientes.component'
 // Importaciones para la nueva funcionalidad
 import { ProfileComponent } from './pages/profile/profile.component';
 import { authGuard } from './guards/auth.guard';
+import { GeoRecorridoComponent } from './pages/geo-recorrido/geo-recorrido.component';
 
 export const routes: Routes = [
   // --- RUTA PÚBLICA ---
@@ -43,6 +44,11 @@ export const routes: Routes = [
         path: 'servicios',
         component: ServiciosComponent,
         data: { title: 'Servicios' },
+      },
+      {
+        path: 'recorridos',
+        component: GeoRecorridoComponent,
+        data: { title: 'Recorridos' },
       },
       // {
       //   path: 'catalogs/clientes',

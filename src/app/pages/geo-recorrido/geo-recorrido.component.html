@@ -1,0 +1,100 @@
+<div class="recorrido-container">
+  <mat-card class="form-card">
+    <mat-card-title>Agregar Nuevo Punto de Recorrido</mat-card-title>
+    <mat-card-content>
+      <form [formGroup]="recorridoForm" (ngSubmit)="onSubmit()">
+        <!-- CAMPO CORREGIDO -->
+        <mat-form-field appearance="outline">
+          <mat-label>ID Ruta</mat-label>
+          <input
+            matInput
+            formControlName="idRuta"
+            type="number"
+            placeholder="Ej: 2"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Latitud</mat-label>
+          <input
+            matInput
+            formControlName="latitud"
+            type="text"
+            placeholder="Ej: 37.42199830"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Longitud</mat-label>
+          <input
+            matInput
+            formControlName="longitud"
+            type="text"
+            placeholder="Ej: -122.08400000"
+          />
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="recorridoForm.invalid"
+        >
+          Guardar Recorrido
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="table-card">
+    <mat-card-title>Listado de Recorridos</mat-card-title>
+    <mat-card-content>
+      <table mat-table [dataSource]="dataSource()" class="mat-elevation-z2">
+        <ng-container matColumnDef="idRecorrido">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let element">{{ element.idRecorrido }}</td>
+        </ng-container>
+
+        <!-- COLUMNA CORREGIDA -->
+        <ng-container matColumnDef="idRuta">
+          <th mat-header-cell *matHeaderCellDef>ID Ruta</th>
+          <td mat-cell *matCellDef="let element">{{ element.idRuta }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="latitud">
+          <th mat-header-cell *matHeaderCellDef>Latitud</th>
+          <td mat-cell *matCellDef="let element">{{ element.latitud }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="longitud">
+          <th mat-header-cell *matHeaderCellDef>Longitud</th>
+          <td mat-cell *matCellDef="let element">{{ element.longitud }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="fechaHora">
+          <th mat-header-cell *matHeaderCellDef>Fecha y Hora</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.fechaHora | date : "dd/MM/yyyy HH:mm:ss" }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let element">
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="onDelete(element.idRecorrido)"
+              aria-label="Eliminar registro"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,64 @@
+/* :host se usa para aplicar estilos solo a este componente */
+:host {
+  display: block;
+  padding: 24px;
+}
+
+/* Contenedor principal con diseño de dos columnas */
+.recorrido-container {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+}
+
+/* Tarjeta de Angular Material para que coincida con tu tema oscuro */
+mat-card {
+  background-color: #2c2c2c;
+}
+
+/* Espacio debajo del título de la tarjeta */
+mat-card-title {
+  margin-bottom: 20px;
+}
+
+/* Estructura del formulario dentro de la tarjeta */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Asegura que los campos de formulario ocupen todo el ancho */
+mat-form-field {
+  width: 100%;
+}
+
+/* Estilos para la tabla */
+table {
+  width: 100%;
+  background-color: transparent; /* Fondo transparente para heredar el del contenedor */
+}
+
+/* 
+  Estilos para el texto de la tabla (cabecera y celdas) 
+  para que sea visible en el fondo oscuro. 
+*/
+.mat-mdc-header-cell,
+.mat-mdc-cell {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* Efecto hover en las filas de la tabla */
+.mat-mdc-row:hover .mat-mdc-cell {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 
+  Media Query para hacer el diseño responsivo en pantallas pequeñas.
+  Apila las tarjetas una encima de la otra.
+*/
+@media (max-width: 960px) {
+  .recorrido-container {
+    grid-template-columns: 1fr; /* Cambia a una sola columna */
+  }
+}
