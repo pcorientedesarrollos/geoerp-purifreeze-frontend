@@ -1,5 +1,3 @@
-
-
 // src/app/interfaces/geo_clientes.ts
 
 export interface GeoCliente {
