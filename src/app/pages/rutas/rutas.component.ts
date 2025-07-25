@@ -1,16 +1,9 @@
-// ========================== rutas.component.ts (Versión Completa) ==========================
-
 import { Component, OnInit, inject } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  FormArray,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router'; // <--- IMPORTACIÓN NECESARIA
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,219 +15,174 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatTableModule } from '@angular/material/table';
+import { MatDividerModule } from '@angular/material/divider';
+
 
 // Servicios e Interfaces
 import { GeoClientesService } from '../../services/geo_clientes/geo-clientes.service';
 import { GeoTipoServicioService } from '../../services/geo_tipoServicios/geo-tipo-servicio.service';
 import { GeoUnidadTransportesService } from '../../services/geo_unidadTransportes/geo-unidad-transportes.service';
 import { GeoRutasService } from '../../services/geo_rutas/geo-rutas.service';
+import { GeoUsuariosService } from '../../services/geo_usuarios/geo-usuarios.service';
+import { GeoClientesDireccion } from '../../interfaces/geo_clientes-direccion';
 import { GeoCliente } from '../../interfaces/geo_clientes';
 import { GeoTipoServicio } from '../../interfaces/geo_tipo-servicios';
 import { GeoUnidadTransporte } from '../../interfaces/geo_unidad-transportes';
-import { GeoRutas } from '../../interfaces/geo-rutas';
+import { GeoUsuario } from '../../interfaces/geo_usuarios';
 import { GeoRutasParada } from '../../interfaces/geo-rutas-parada';
-
-// Interfaz temporal para el operador
-interface Operador {
-  idUsuario: number;
-  nombre: string;
-}
+import { GeoClientesDireccionService } from '../../services/geo_direccionClientes/geo-clientes-direccion.service';
 
 @Component({
   selector: 'app-rutas',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatCardModule,
-    MatSnackBarModule,
+    CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
+    MatButtonModule, MatIconModule, MatSelectModule, MatDatepickerModule,
+    MatCardModule, MatSnackBarModule, MatTableModule, MatDividerModule
   ],
   templateUrl: './rutas.component.html',
   styleUrls: ['./rutas.component.css'],
   providers: [provideNativeDateAdapter()],
 })
 export class RutasComponent implements OnInit {
-  // --- INYECCIONES DE DEPENDENCIAS ---
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private geoRutasService = inject(GeoRutasService);
   private geoClientesService = inject(GeoClientesService);
   private geoTipoServicioService = inject(GeoTipoServicioService);
   private geoUnidadTransportesService = inject(GeoUnidadTransportesService);
+  private geoUsuariosService = inject(GeoUsuariosService);
+  private geoClientesDireccionService = inject(GeoClientesDireccionService);
 
-  // --- PROPIEDADES DEL COMPONENTE ---
   rutaForm: FormGroup;
-  operadores: Operador[] = [];
+  paradaForm: FormGroup;
+
+  operadores: GeoUsuario[] = [];
   unidades: GeoUnidadTransporte[] = [];
   clientes: GeoCliente[] = [];
   tiposDeServicio: GeoTipoServicio[] = [];
-  sucursales: any[] = [];
-
-  public editMode = false;
-  private rutaId: number | null = null;
-  public pageTitle = 'Crear Nueva Ruta'; // Título dinámico para la vista
+  
+  private todasLasDirecciones: GeoClientesDireccion[] = [];
+  direccionesFiltradas: GeoClientesDireccion[] = [];
+  
+  paradasAgregadas: GeoRutasParada[] = [];
+  columnasTabla: string[] = ['cliente', 'sucursal', 'tipoServicio', 'direccion', 'acciones'];
+  isSaving = false;
 
   constructor() {
     this.rutaForm = this.fb.group({
       idUsuario: ['', Validators.required],
       idUnidadTransporte: ['', Validators.required],
       fecha_hora: [new Date(), Validators.required],
-      paradas: this.fb.array([]),
+    });
+
+    this.paradaForm = this.fb.group({
+      idCliente: [null, Validators.required],
+      idSucursal: [null, Validators.required],
+      idTipoServicio: [null, Validators.required],
+      direccion: [{ value: '', disabled: true }, Validators.required],
+      notas: [''],
+    });
+
+    this.paradaForm.get('idCliente')!.valueChanges.pipe(takeUntilDestroyed()).subscribe(idCliente => {
+      this.paradaForm.get('idSucursal')?.reset();
+      this.paradaForm.get('direccion')?.reset();
+      if (idCliente) {
+        this.direccionesFiltradas = this.todasLasDirecciones.filter(d => d.idCliente === idCliente);
+      } else {
+        this.direccionesFiltradas = [];
+      }
+    });
+
+    this.paradaForm.get('idSucursal')!.valueChanges.pipe(takeUntilDestroyed()).subscribe(idSucursal => {
+      if (idSucursal) {
+        const direccionEncontrada = this.todasLasDirecciones.find(d => d.idDireccion === idSucursal);
+        this.paradaForm.get('direccion')?.setValue(direccionEncontrada?.direccion || '');
+      }
     });
   }
 
   ngOnInit(): void {
-    this.cargarDatosIniciales();
-
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.editMode = true;
-      this.rutaId = +id;
-      this.pageTitle = 'Editar Ruta';
-      this.cargarRutaParaEditar(this.rutaId);
-    } else {
-      this.pageTitle = 'Crear Nueva Ruta';
-      this.agregarParada();
-    }
+    this.cargarDatosDeSoporte();
   }
 
-  cargarDatosIniciales(): void {
-    this.operadores = [
-      { idUsuario: 1, nombre: 'Juan Pérez' },
-      { idUsuario: 2, nombre: 'María García' },
-    ];
-
+  cargarDatosDeSoporte(): void {
     forkJoin({
+      operadores: this.geoUsuariosService.getUsuarios(),
       unidades: this.geoUnidadTransportesService.getUnidadesTransporte(),
       clientes: this.geoClientesService.getClientes(),
       tiposServicio: this.geoTipoServicioService.getTiposServicio(),
+      direcciones: this.geoClientesDireccionService.getClientesDireccion(),
     }).subscribe({
       next: (data) => {
-        this.unidades = data.unidades.filter((u) => u.activo);
+        this.operadores = data.operadores;
+        this.unidades = data.unidades.filter(u => u.activo);
         this.clientes = data.clientes;
-        this.tiposDeServicio = data.tiposServicio.filter((s) => s.estado);
+        this.tiposDeServicio = data.tiposServicio.filter(s => s.estado);
+        this.todasLasDirecciones = data.direcciones;
       },
-      error: (err) => {
-        console.error('Error al cargar datos desde la API:', err);
-        this.snackBar.open(
-          'Error al cargar datos iniciales. Revisa la consola.',
-          'Cerrar',
-          { duration: 5000 }
-        );
-      },
-    });
-  }
-
-  cargarRutaParaEditar(id: number): void {
-    this.geoRutasService.getRutaPorId(id).subscribe({
-      next: (ruta: GeoRutas) => {
-        this.rutaForm.patchValue({
-          idUsuario: ruta.idUsuario,
-          idUnidadTransporte: ruta.idUnidadTransporte,
-          fecha_hora: ruta.fecha_hora,
-        });
-
-        this.paradas.clear();
-
-        ruta.paradas.forEach((parada: GeoRutasParada) => {
-          const paradaFormGroup = this.fb.group({
-            idCliente: [parada.idCliente, Validators.required],
-            idSucursal: [parada.idSucursal, Validators.required],
-            direccion: [parada.direccion, Validators.required],
-            idTipoServicio: [parada.idTipoServicio, Validators.required],
-            notas: [parada.notas],
-          });
-          // Habilitamos el campo de sucursal ya que el cliente está cargado
-          paradaFormGroup.get('idSucursal')?.enable();
-          this.paradas.push(paradaFormGroup);
-        });
-      },
-      error: (err: any) =>
-        this.snackBar.open('Error al cargar la ruta para editar.', 'Cerrar', {
-          duration: 3000,
-        }),
-    });
-  }
-
-  get paradas(): FormArray {
-    return this.rutaForm.get('paradas') as FormArray;
-  }
-
-  nuevaParada(): FormGroup {
-    return this.fb.group({
-      idCliente: ['', Validators.required],
-      idSucursal: [{ value: '', disabled: true }, Validators.required],
-      direccion: ['', Validators.required],
-      idTipoServicio: ['', Validators.required],
-      notas: [''],
+      error: () => this.mostrarNotificacion('Error al cargar datos iniciales.', 'error'),
     });
   }
 
   agregarParada(): void {
-    this.paradas.push(this.nuevaParada());
+    if (this.paradaForm.invalid) {
+      this.mostrarNotificacion('Completa todos los campos de la parada.', 'advertencia');
+      return;
+    }
+    this.paradasAgregadas.push(this.paradaForm.getRawValue());
+    this.paradaForm.reset();
+    this.direccionesFiltradas = [];
   }
 
   eliminarParada(index: number): void {
-    this.paradas.removeAt(index);
+    this.paradasAgregadas.splice(index, 1);
   }
 
-  onClienteSeleccionado(clienteId: number, paradaIndex: number): void {
-    const paradaFormGroup = this.paradas.at(paradaIndex);
-    paradaFormGroup.get('idSucursal')?.enable();
-    // Aquí irá la lógica para cargar las sucursales de ese cliente desde un servicio
-  }
-
-  onSubmit(): void {
-    if (this.rutaForm.invalid) {
-      this.snackBar.open(
-        'El formulario tiene campos obligatorios sin rellenar.',
-        'Cerrar',
-        { duration: 3000 }
-      );
-      this.rutaForm.markAllAsTouched();
+  guardarRuta(): void {
+    if (this.rutaForm.invalid || this.paradasAgregadas.length === 0) {
+      this.mostrarNotificacion('Debes completar los datos de la ruta y agregar al menos una parada.', 'advertencia');
       return;
     }
 
-    const datosParaEnviar = this.rutaForm.getRawValue();
+    this.isSaving = true;
+    const payload = {
+      ...this.rutaForm.value,
+      fecha_hora: new Date(this.rutaForm.value.fecha_hora).toISOString(),
+      paradas: this.paradasAgregadas,
+    };
 
-    if (this.editMode && this.rutaId) {
-      // --- Lógica de ACTUALIZACIÓN ---
-      this.geoRutasService.updateRuta(this.rutaId, datosParaEnviar).subscribe({
-        next: () => {
-          this.snackBar.open('Ruta actualizada con éxito', 'Ok', {
-            duration: 3000,
-          });
-          this.router.navigate(['/rutas']); // Redirige a la lista
-        },
-        error: (err: any) => {
-          console.error('Error al actualizar:', err);
-          this.snackBar.open('Error al actualizar la ruta.', 'Cerrar', {
-            duration: 4000,
-          });
-        },
-      });
-    } else {
-      // --- Lógica de CREACIÓN ---
-      this.geoRutasService.createRuta(datosParaEnviar).subscribe({
-        next: () => {
-          this.snackBar.open('Ruta creada con éxito', 'Ok', { duration: 3000 });
-          this.router.navigate(['/rutas']); // Redirige a la lista
-        },
-        error: (err: any) => {
-          console.error('Error al crear:', err);
-          this.snackBar.open('Error al crear la ruta.', 'Cerrar', {
-            duration: 4000,
-          });
-        },
-      });
-    }
+    this.geoRutasService.createRuta(payload).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.mostrarNotificacion('Ruta creada con éxito.', 'exito');
+        this.router.navigate(['/dashboard/rutas']);
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('Error detallado del backend:', err);
+        this.mostrarNotificacion('Error al crear la ruta.', 'error');
+      }
+    });
+  }
+
+  cancelar(): void {
+    this.router.navigate(['/dashboard/rutas']);
+  }
+
+  getClienteNombre(idCliente: number): string {
+    return this.clientes.find(c => c.idcliente === idCliente)?.nombreComercio || 'N/A';
+  }
+  getSucursalNombre(idSucursal: number): string {
+    return this.todasLasDirecciones.find(d => d.idDireccion === idSucursal)?.nombreSucursal || 'N/A';
+  }
+  getTipoServicioNombre(idTipo: number): string {
+    return this.tiposDeServicio.find(t => t.idTipoServicio === idTipo)?.nombre || 'N/A';
+  }
+
+  private mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'advertencia') {
+    this.snackBar.open(mensaje, 'Cerrar', { duration: 4000, panelClass: [`snackbar-${tipo}`], verticalPosition: 'top' });
   }
 }

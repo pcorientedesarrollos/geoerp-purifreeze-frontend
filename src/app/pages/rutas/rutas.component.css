@@ -1,63 +1,126 @@
-:host {
-  display: block;
+.form-card {
+  max-width: 1200px;
+  margin: 24px auto;
 }
 
-.form-page-container {
-  padding: 24px;
+.section-title {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-.form-grid {
+.section-divider {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.header-form, .parada-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
 
-.section-container {
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  margin-bottom: 24px;
-}
-
-.full-width-field {
+.full-span {
   grid-column: 1 / -1;
 }
 
-.section-title {
-  margin-top: 32px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  font-weight: 500;
-  font-size: 1.2em;
-}
-
-.parada-container {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 24px;
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-.parada-header {
+.add-button-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  justify-content: flex-end;
 }
 
-.parada-header h4 {
-  margin: 0;
-  font-size: 1.1em;
-  color: #90caf9; /* Color de acento */
+/* --- ESTILOS PARA LA NUEVA LISTA DE TARJETAS --- */
+
+.paradas-list-container {
+  display: grid;
+  /* Crea una cuadrícula responsiva para las tarjetas */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
 }
+
+.parada-card {
+  transition: box-shadow 0.3s ease;
+}
+
+.parada-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.parada-card .mat-card-header {
+  padding: 16px 16px 0 16px;
+}
+
+/* Un pequeño truco para empujar el botón de eliminar a la derecha */
+.spacer {
+  flex: 1 1 auto;
+}
+
+.parada-card-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Espacio entre cada línea de detalle */
+}
+
+.parada-detail {
+  display: flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.parada-detail mat-icon {
+  margin-right: 12px;
+  color: #673ab7; /* Color principal de Angular Material o el que prefieras */
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+}
+
+.parada-detail span {
+  flex: 1;
+}
+
+.parada-detail.notas {
+  background-color: #f5f5f5; /* Un fondo sutil para las notas */
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* --- ESTILOS PARA EL MENSAJE DE "NO HAY PARADAS" --- */
+
+.no-stops-message-container {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.54);
+  padding: 32px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-stops-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
+
+/* --- ESTILOS PARA LAS ACCIONES FINALES --- */
 
 .form-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin-top: 24px;
 }

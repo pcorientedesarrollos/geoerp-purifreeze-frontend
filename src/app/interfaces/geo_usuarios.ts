@@ -1,4 +1,4 @@
-export interface GeoUsuarios {
+export interface GeoUsuario {
     idUsuario: number;
     usuario: string;
     clave: string;
