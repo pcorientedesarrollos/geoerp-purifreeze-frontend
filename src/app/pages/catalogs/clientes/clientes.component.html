@@ -1,55 +1,55 @@
-<div class="clientes-container">
-  <div class="header">
-    <h1>Clientes</h1>
-    <button mat-fab extended color="primary" (click)="agregarCliente()">
+<div class="table-container">
+  <div class="table-header">
+    <h2>Listado de Direcciones de Clientes</h2>
+    <button mat-flat-button color="primary" (click)="agregarCliente()">
       <mat-icon>add</mat-icon>
-      Agregar Cliente
+      Añadir Dirección
     </button>
   </div>
 
-  <div class="table-responsive mat-elevation-z8">
-    <table mat-table [dataSource]="dataSource" class="full-width-table">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
 
-      <!-- Columna Nombre Comercial -->
-      <!-- <ng-container matColumnDef="nombreComercial">
-        <th mat-header-cell *matHeaderCellDef> Nombre Comercial </th>
-        <td mat-cell *matCellDef="let element"> {{element.nombreComercial || 'N/A'}} </td>
-      </ng-container> -->
+    <!-- ========================================================== -->
+    <!-- ESTE ES EL BLOQUE QUE FALTABA Y SOLUCIONA EL ERROR -->
+    <ng-container matColumnDef="nombreComercio">
+      <th mat-header-cell *matHeaderCellDef> Nombre Comercio </th>
+      <td mat-cell *matCellDef="let element"> {{element.nombreComercio || 'N/A'}} </td>
+    </ng-container>
+    <!-- ========================================================== -->
 
-      <!-- Columna Razón Social -->
-      <ng-container matColumnDef="razon_social">
-        <th mat-header-cell *matHeaderCellDef> Razón Social </th>
-        <td mat-cell *matCellDef="let element"> {{element.razon_social || 'N/A'}} </td>
-      </ng-container>
+    <!-- Columna Razón Social -->
+    <ng-container matColumnDef="razon_social">
+      <th mat-header-cell *matHeaderCellDef> Razón Social </th>
+      <td mat-cell *matCellDef="let element"> {{element.razon_social}} </td>
+    </ng-container>
 
-      <!-- Columna Dirección -->
-      <ng-container matColumnDef="direccion">
-        <th mat-header-cell *matHeaderCellDef> Dirección </th>
-        <td mat-cell *matCellDef="let element"> {{element.direccion}} </td>
-      </ng-container>
+    <!-- Columna Dirección -->
+    <ng-container matColumnDef="direccion">
+      <th mat-header-cell *matHeaderCellDef> Dirección Fiscal </th>
+      <td mat-cell *matCellDef="let element"> {{element.direccion}} </td>
+    </ng-container>
 
-      <!-- Columna Nombre Sucursal -->
-      <ng-container matColumnDef="nombreSucursal">
-        <th mat-header-cell *matHeaderCellDef> Sucursal </th>
-        <td mat-cell *matCellDef="let element"> {{element.nombreSucursal}} </td>
-      </ng-container>
-      
-      <!-- Columna Acciones (Botones) -->
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef> Acciones </th>
-        <td mat-cell *matCellDef="let element">
-          <button mat-icon-button color="primary" aria-label="Editar cliente" (click)="editarCliente(element)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" aria-label="Eliminar cliente" (click)="eliminarCliente(element)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+    <!-- Columna Nombre Sucursal -->
+    <ng-container matColumnDef="nombreSucursal">
+      <th mat-header-cell *matHeaderCellDef> Sucursal </th>
+      <td mat-cell *matCellDef="let element"> {{element.nombreSucursal}} </td>
+    </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <!-- Columna Acciones -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> Acciones </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button color="primary" (click)="editarCliente(element)" aria-label="Editar cliente">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="eliminarCliente(element)" aria-label="Eliminar cliente">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
 
-    </table>
-  </div>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
 </div>

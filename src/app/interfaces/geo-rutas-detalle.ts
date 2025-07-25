@@ -4,8 +4,7 @@ export interface GeoRutasDetalle {
     latitud: number;
     longitud: number;
     fecha_hora: Date;
-    
- 
+    idCliente: number;
+    status: number;
 }
-
 
