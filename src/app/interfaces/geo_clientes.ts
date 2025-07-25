@@ -1,9 +1,8 @@
-
-
 // src/app/interfaces/geo_clientes.ts
 
 export interface GeoCliente {
   idcliente: number;
+  nombreComercio?: string;
   razon_social?: string;
   rfc: string;
   nombreEncargado?: string;
@@ -15,5 +14,4 @@ export interface GeoCliente {
   estado: string;
   codigoPostal: string;
   nombreArchivo?: string;
-  nombreComercial?: string;
 }
