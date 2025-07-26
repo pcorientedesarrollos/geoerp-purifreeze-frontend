@@ -25,6 +25,7 @@ export class SidenavComponent implements OnInit {
   private readonly _sourceMenuItems: NavItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/dashboard' },
     { icon: 'route', label: 'Rutas', route: '/rutas' },
+    { icon: 'timeline', label: 'Recorridos', route: '/recorridos' },
     { icon: 'miscellaneous_services', label: 'Servicios', route: '/servicios' },
     {
       icon: 'analytics',

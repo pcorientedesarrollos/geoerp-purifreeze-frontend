@@ -1,23 +1,33 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+// src/app/pages/geo-recorrido/geo-recorrido.component.ts
+
 import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+  Component,
+  OnInit,
+  inject,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+
 import { GeoRecorrido } from '../../interfaces/geo-recorrido';
 import { GeoRecorridoService } from '../../services/geo-recorrido/geo-recorrido.service';
+import { debounceTime } from 'rxjs';
 
 @Component({
-  selector: 'app-geo-recorrido',
+  selector: 'app-geo-recorrido', // Tu selector correcto
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -29,92 +39,105 @@ import { GeoRecorridoService } from '../../services/geo-recorrido/geo-recorrido.
     MatIconModule,
     MatSnackBarModule,
     DatePipe,
+    MatPaginatorModule,
+    MatSortModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
   templateUrl: './geo-recorrido.component.html',
   styleUrl: './geo-recorrido.component.css',
 })
-export class GeoRecorridoComponent {
+// La clase se llama GeoRecorridoComponent, como la tienes tú
+export class GeoRecorridoComponent implements OnInit, AfterViewInit {
   private fb = inject(FormBuilder);
   private recorridoService = inject(GeoRecorridoService);
   private snackBar = inject(MatSnackBar);
 
-  recorridos = signal<GeoRecorrido[]>([]);
+  filterForm: FormGroup;
 
+  // Se elimina la columna de acciones
   displayedColumns: string[] = [
     'idRecorrido',
-    'idRuta', // CORREGIDO
+    'idRuta',
     'latitud',
     'longitud',
     'fechaHora',
-    'acciones',
   ];
+  dataSource = new MatTableDataSource<GeoRecorrido>();
 
-  dataSource = computed(() => new MatTableDataSource(this.recorridos()));
-
-  recorridoForm: FormGroup;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor() {
-    this.recorridoForm = this.fb.group({
-      idRuta: ['', [Validators.required, Validators.pattern(/^[0-9]+$/)]], // CORREGIDO
-      latitud: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(/^-?[0-9]{1,3}(\.[0-9]{1,8})?$/),
-        ],
-      ],
-      longitud: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(/^-?[0-9]{1,3}(\.[0-9]{1,8})?$/),
-        ],
-      ],
+    this.filterForm = this.fb.group({
+      idRecorrido: [''],
+      idRuta: [''],
+      fecha: [''],
     });
   }
 
   ngOnInit(): void {
     this.loadRecorridos();
+    this.setupFilterPredicate();
+    this.setupFilterSubscription();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   loadRecorridos(): void {
     this.recorridoService.getRecorridos().subscribe({
-      next: (data) => this.recorridos.set(data),
+      next: (data) => {
+        this.dataSource.data = data;
+      },
       error: (err) => this.showError('Error al cargar los registros.'),
     });
   }
 
-  onSubmit(): void {
-    if (this.recorridoForm.invalid) {
-      this.showError('Formulario inválido. Por favor, revise los campos.');
-      return;
-    }
-    this.recorridoService.addRecorrido(this.recorridoForm.value).subscribe({
-      next: () => {
-        this.showSuccess('Registro agregado con éxito.');
-        this.recorridoForm.reset();
-        this.loadRecorridos();
-      },
-      error: (err) => this.showError('Error al agregar el registro.'),
+  setupFilterSubscription(): void {
+    this.filterForm.valueChanges.pipe(debounceTime(300)).subscribe((values) => {
+      this.dataSource.filter = JSON.stringify(values);
     });
   }
 
-  onDelete(id: number): void {
-    if (confirm('¿Está seguro de que desea eliminar este registro?')) {
-      this.recorridoService.deleteRecorrido(id).subscribe({
-        next: () => {
-          this.showSuccess('Registro eliminado con éxito.');
-          this.loadRecorridos();
-        },
-        error: (err) => this.showError('Error al eliminar el registro.'),
-      });
-    }
+  setupFilterPredicate(): void {
+    this.dataSource.filterPredicate = (
+      data: GeoRecorrido,
+      filter: string
+    ): boolean => {
+      const filters = JSON.parse(filter);
+      let match = true;
+
+      if (
+        filters.idRecorrido &&
+        !data.idRecorrido.toString().includes(filters.idRecorrido)
+      ) {
+        match = false;
+      }
+      if (filters.idRuta && !data.idRuta.toString().includes(filters.idRuta)) {
+        match = false;
+      }
+      if (filters.fecha) {
+        const itemDate = new Date(data.fechaHora).setHours(0, 0, 0, 0);
+        const filterDate = new Date(filters.fecha).setHours(0, 0, 0, 0);
+        if (itemDate !== filterDate) {
+          match = false;
+        }
+      }
+      return match;
+    };
   }
 
-  private showSuccess(message: string): void {
-    /* ... */
+  clearFilters(): void {
+    this.filterForm.reset({ idRecorrido: '', idRuta: '', fecha: '' });
   }
+
   private showError(message: string): void {
-    /* ... */
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 3000,
+      panelClass: ['snackbar-error'],
+    });
   }
 }

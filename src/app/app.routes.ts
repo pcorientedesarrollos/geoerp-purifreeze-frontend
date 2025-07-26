@@ -46,9 +46,14 @@ export const routes: Routes = [
         data: { title: 'Servicios' },
       },
       {
-        path: 'recorridos',
-        component: GeoRecorridoComponent,
-        data: { title: 'Recorridos' },
+        path: 'recorridos', // La URL se mantiene limpia y amigable
+        loadChildren: () =>
+          // Apunta al nuevo archivo de rutas
+          import('./pages/geo-recorrido/geo-recorrido.routes').then(
+            // Usa la constante exportada correcta
+            (m) => m.GEO_RECORRIDO_ROUTES
+          ),
+        data: { title: 'Consulta de Recorridos' },
       },
       // {
       //   path: 'catalogs/clientes',
