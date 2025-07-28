@@ -7,8 +7,8 @@ import {
   ViewChild,
   AfterViewInit,
 } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule, DatePipe } from '@angular/common'; // La importación de la clase está bien aquí
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -17,16 +17,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { GeoRecorrido } from '../../interfaces/geo-recorrido';
 import { GeoRecorridoService } from '../../services/geo-recorrido/geo-recorrido.service';
-import { debounceTime } from 'rxjs';
+import { debounceTime, startWith } from 'rxjs';
 
 @Component({
-  selector: 'app-geo-recorrido', // Tu selector correcto
+  selector: 'app-geo-recorrido',
   standalone: true,
   imports: [
     CommonModule,
@@ -38,24 +36,23 @@ import { debounceTime } from 'rxjs';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    DatePipe,
+    // === CAMBIO 1: Se elimina DatePipe de aquí ===
     MatPaginatorModule,
     MatSortModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
   ],
+  // === CAMBIO 2: Se añade el array 'providers' para DatePipe ===
+  providers: [DatePipe],
   templateUrl: './geo-recorrido.component.html',
   styleUrl: './geo-recorrido.component.css',
 })
-// La clase se llama GeoRecorridoComponent, como la tienes tú
 export class GeoRecorridoComponent implements OnInit, AfterViewInit {
-  private fb = inject(FormBuilder);
   private recorridoService = inject(GeoRecorridoService);
   private snackBar = inject(MatSnackBar);
+  // La inyección de DatePipe ahora funcionará porque está en 'providers'
+  private datePipe = inject(DatePipe);
 
-  filterForm: FormGroup;
+  filterControl = new FormControl('');
 
-  // Se elimina la columna de acciones
   displayedColumns: string[] = [
     'idRecorrido',
     'idRuta',
@@ -68,18 +65,17 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor() {
-    this.filterForm = this.fb.group({
-      idRecorrido: [''],
-      idRuta: [''],
-      fecha: [''],
-    });
-  }
+  constructor() {}
 
   ngOnInit(): void {
     this.loadRecorridos();
     this.setupFilterPredicate();
-    this.setupFilterSubscription();
+
+    this.filterControl.valueChanges
+      .pipe(startWith(''), debounceTime(300))
+      .subscribe((value) => {
+        this.dataSource.filter = (value || '').trim().toLowerCase();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -96,42 +92,24 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     });
   }
 
-  setupFilterSubscription(): void {
-    this.filterForm.valueChanges.pipe(debounceTime(300)).subscribe((values) => {
-      this.dataSource.filter = JSON.stringify(values);
-    });
-  }
-
   setupFilterPredicate(): void {
     this.dataSource.filterPredicate = (
       data: GeoRecorrido,
       filter: string
     ): boolean => {
-      const filters = JSON.parse(filter);
-      let match = true;
-
-      if (
-        filters.idRecorrido &&
-        !data.idRecorrido.toString().includes(filters.idRecorrido)
-      ) {
-        match = false;
-      }
-      if (filters.idRuta && !data.idRuta.toString().includes(filters.idRuta)) {
-        match = false;
-      }
-      if (filters.fecha) {
-        const itemDate = new Date(data.fechaHora).setHours(0, 0, 0, 0);
-        const filterDate = new Date(filters.fecha).setHours(0, 0, 0, 0);
-        if (itemDate !== filterDate) {
-          match = false;
-        }
-      }
-      return match;
+      const formattedDate =
+        this.datePipe.transform(data.fechaHora, 'dd/MM/yyyy') || '';
+      const dataStr = (
+        data.idRecorrido.toString() +
+        data.idRuta.toString() +
+        formattedDate
+      ).toLowerCase();
+      return dataStr.includes(filter);
     };
   }
 
-  clearFilters(): void {
-    this.filterForm.reset({ idRecorrido: '', idRuta: '', fecha: '' });
+  clearFilter(): void {
+    this.filterControl.setValue('');
   }
 
   private showError(message: string): void {
