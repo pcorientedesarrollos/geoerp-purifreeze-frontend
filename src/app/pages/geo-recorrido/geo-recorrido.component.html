@@ -34,7 +34,6 @@
   </mat-card>
 
   <!-- CONTENEDOR DESPLEGABLE PARA EL MAPA -->
-  <!-- ===== CORRECCIÓN DE SINTAXIS AQUÍ ===== -->
   <mat-card class="map-wrapper-card" [hidden]="!mapaVisible">
     <mat-card-content>
       <app-maps
@@ -46,7 +45,6 @@
       ></app-maps>
     </mat-card-content>
   </mat-card>
-  <!-- ===== FIN DE CORRECCIÓN DE SINTAXIS ===== -->
 
   <!-- TABLA -->
   <mat-card class="table-container">
@@ -97,12 +95,13 @@
 
         <!-- Definiciones de Filas -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <!-- ===== CAMBIO CLAVE: Ahora se selecciona y resalta por 'idRuta' ===== -->
         <tr
           mat-row
           *matRowDef="let row; columns: displayedColumns"
-          (click)="seleccionarRecorrido(row)"
+          (click)="seleccionarRuta(row)"
           class="clickable-row"
-          [class.selected-row]="row.idRecorrido === selectedRecorridoId"
+          [class.selected-row]="row.idRuta === selectedRutaId"
         ></tr>
 
         <!-- Fila para cuando no hay datos -->
