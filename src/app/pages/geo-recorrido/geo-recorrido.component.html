@@ -1,33 +1,54 @@
+<!-- src/app/pages/geo-recorrido/geo-recorrido.component.html -->
 <div class="recorrido-page-container">
-  <!-- === SECCIÓN DE FILTROS MODIFICADA === -->
+  <!-- SECCIÓN DE FILTROS Y CONTROL DEL MAPA -->
   <mat-card class="filter-card">
-    <mat-card-title>Filtros de Bus</mat-card-title>
-    <mat-card-content>
-      <!--Filtro-->
-      <mat-form-field appearance="outline" class="single-filter-field">
-        <mat-label>Buscar </mat-label>
+    <mat-card-title>Filtros y Visualización</mat-card-title>
+    <mat-card-content class="filter-controls">
+      <!-- Filtro -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Buscar</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControl]="filterControl"
           placeholder="Buscar por ID Recorrido, ID Ruta o Fecha..."
         />
-
-        <!-- Ícono para limpiar el campo, solo aparece si hay texto -->
+        @if (filterControl.value) {
         <button
           mat-icon-button
           matSuffix
-          *ngIf="filterControl.value"
           (click)="clearFilter()"
           aria-label="Limpiar filtro"
         >
           <mat-icon>close</mat-icon>
         </button>
+        }
       </mat-form-field>
+
+      <!-- Botón para mostrar/ocultar mapa -->
+      <button mat-stroked-button (click)="toggleMapa()">
+        <mat-icon>{{ mapaVisible ? "visibility_off" : "map" }}</mat-icon>
+        <span>{{ mapaVisible ? "Ocultar Mapa" : "Mostrar Mapa" }}</span>
+      </button>
     </mat-card-content>
   </mat-card>
 
-  <!-- === TABLA === -->
+  <!-- CONTENEDOR DESPLEGABLE PARA EL MAPA -->
+  <!-- ===== CORRECCIÓN DE SINTAXIS AQUÍ ===== -->
+  <mat-card class="map-wrapper-card" [hidden]="!mapaVisible">
+    <mat-card-content>
+      <app-maps
+        #mapaRecorridos
+        [routes]="mapRoutes"
+        [markers]="mapMarkers"
+        [center]="mapCenter"
+        [zoom]="mapZoom"
+      ></app-maps>
+    </mat-card-content>
+  </mat-card>
+  <!-- ===== FIN DE CORRECCIÓN DE SINTAXIS ===== -->
+
+  <!-- TABLA -->
   <mat-card class="table-container">
     <mat-card-content>
       <table
@@ -36,16 +57,19 @@
         matSort
         class="mat-elevation-z4"
       >
+        <!-- Columna ID Recorrido -->
         <ng-container matColumnDef="idRecorrido">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
           <td mat-cell *matCellDef="let element">{{ element.idRecorrido }}</td>
         </ng-container>
 
+        <!-- Columna ID Ruta -->
         <ng-container matColumnDef="idRuta">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>ID Ruta</th>
           <td mat-cell *matCellDef="let element">{{ element.idRuta }}</td>
         </ng-container>
 
+        <!-- Columna Latitud -->
         <ng-container matColumnDef="latitud">
           <th mat-header-cell *matHeaderCellDef>Latitud</th>
           <td mat-cell *matCellDef="let element">
@@ -53,6 +77,7 @@
           </td>
         </ng-container>
 
+        <!-- Columna Longitud -->
         <ng-container matColumnDef="longitud">
           <th mat-header-cell *matHeaderCellDef>Longitud</th>
           <td mat-cell *matCellDef="let element">
@@ -60,6 +85,7 @@
           </td>
         </ng-container>
 
+        <!-- Columna Fecha y Hora -->
         <ng-container matColumnDef="fechaHora">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
             Fecha y Hora
@@ -69,9 +95,17 @@
           </td>
         </ng-container>
 
+        <!-- Definiciones de Filas -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          (click)="seleccionarRecorrido(row)"
+          class="clickable-row"
+          [class.selected-row]="row.idRecorrido === selectedRecorridoId"
+        ></tr>
 
+        <!-- Fila para cuando no hay datos -->
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell" colspan="5">
             No se encontraron datos que coincidan con los filtros.
@@ -79,12 +113,12 @@
         </tr>
       </table>
 
+      <!-- Paginador -->
       <mat-paginator
         [pageSizeOptions]="[10, 25, 50]"
         showFirstLastButtons
         aria-label="Seleccionar página de recorridos"
-      >
-      </mat-paginator>
+      />
     </mat-card-content>
   </mat-card>
 </div>

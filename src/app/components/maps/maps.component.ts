@@ -1,16 +1,20 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Necesario para @for
-import { GoogleMapsModule } from '@angular/google-maps';
+// src/app/components/maps/maps.component.ts
 
-// Interfaces para los datos del mapa
+import { Component, Input, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { GoogleMapsModule, GoogleMap } from '@angular/google-maps';
+
+// Interfaz de Ruta con el ID del recorrido
 export interface MapRoute {
+  idRecorrido: number;
   path: google.maps.LatLngLiteral[];
   options: google.maps.PolylineOptions;
 }
 
+// Interfaz de Marcador
 export interface MapMarker {
   position: google.maps.LatLngLiteral;
-  options?: google.maps.MarkerOptions; // Opcional, para marcadores sin opciones personalizadas
+  options?: google.maps.MarkerOptions;
 }
 
 @Component({
@@ -18,7 +22,7 @@ export interface MapMarker {
   standalone: true,
   imports: [CommonModule, GoogleMapsModule],
   templateUrl: './maps.component.html',
-  styleUrl: './maps.component.css'
+  styleUrls: ['./maps.component.css'],
 })
 export class MapsComponent {
   @Input() routes: MapRoute[] = [];
@@ -26,7 +30,8 @@ export class MapsComponent {
   @Input() center: google.maps.LatLngLiteral = { lat: 20.9754, lng: -89.6169 };
   @Input() zoom = 12;
 
-  // Opciones visuales del mapa
+  @ViewChild(GoogleMap) public map!: GoogleMap;
+
   mapOptions: google.maps.MapOptions = {
     mapTypeId: 'roadmap',
     zoomControl: true,

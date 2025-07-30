@@ -1,3 +1,5 @@
+/* src/app/pages/geo-recorrido/geo-recorrido.component.css */
+
 :host {
   display: block;
   padding: 24px;
@@ -13,20 +15,26 @@ mat-card {
   background-color: #2c2c2c;
 }
 
-/* === ESTILOS MODIFICADOS PARA LA SECCIÓN DE FILTROS === */
-.filter-card mat-card-content {
+/* === ESTILOS PARA LA SECCIÓN DE FILTROS === */
+.filter-card .filter-controls {
   display: flex;
-  justify-content: center; /* Centra el campo de filtro */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
   padding: 8px 0 !important;
 }
 
-/* Se añade esta nueva clase para el campo único */
-.single-filter-field {
-  width: 100%;
-  max-width: 500px; /* Le damos un ancho máximo */
+.filter-field {
+  flex: 1 1 400px;
 }
 
-/* === ESTILOS PARA LA TABLA (se mantienen igual) === */
+/* === ESTILOS PARA EL CONTENEDOR DEL MAPA === */
+.map-wrapper-card mat-card-content {
+  padding: 0 !important;
+  height: 70vh;
+}
+
+/* === ESTILOS PARA LA TABLA === */
 .table-container {
   overflow: auto;
 }
@@ -48,4 +56,17 @@ table {
 .mat-mdc-paginator {
   background-color: #2c2c2c;
   color: rgba(255, 255, 255, 0.7);
+}
+
+/* === NUEVOS ESTILOS para la interacción de la tabla === */
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.selected-row {
+  background: rgba(30, 144, 255, 0.25) !important;
 }
