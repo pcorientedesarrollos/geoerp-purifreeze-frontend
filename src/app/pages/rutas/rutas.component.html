@@ -1,7 +1,7 @@
 <mat-card class="form-card">
   <mat-card-header>
     <mat-card-title>Crear Nueva Ruta</mat-card-title>
-    <mat-card-subtitle>Asigna los datos generales y luego añade las paradas.</mat-card-subtitle>
+    <mat-card-subtitle>Asigna los datos generales y selecciona los servicios que conformarán la ruta.</mat-card-subtitle>
   </mat-card-header>
 
   <mat-card-content>
@@ -11,125 +11,112 @@
       <mat-form-field appearance="outline">
         <mat-label>Operador</mat-label>
         <mat-select formControlName="idUsuario" required>
-          @for(op of operadores; track op.idUsuario){ <mat-option [value]="op.idUsuario">{{ op.usuario }}</mat-option> }
+          @for(op of operadores; track op.idUsuario){
+            <mat-option [value]="op.idUsuario">{{ op.usuario }}</mat-option>
+          }
         </mat-select>
+        <mat-error *ngIf="rutaForm.get('idUsuario')?.hasError('required')">El operador es requerido.</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Unidad de Transporte</mat-label>
         <mat-select formControlName="idUnidadTransporte" required>
-          @for(unidad of unidades; track unidad.idUnidadTransporte){ <mat-option [value]="unidad.idUnidadTransporte">{{ unidad.nombreUnidad }}</mat-option> }
+          @for(unidad of unidades; track unidad.idUnidadTransporte){
+            <mat-option [value]="unidad.idUnidadTransporte">{{ unidad.nombreUnidad }}</mat-option>
+          }
         </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha de la Ruta</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="fecha_hora" required>
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
-    </form>
-
-    <mat-divider class="section-divider"></mat-divider>
-
-    <!-- 2. Formulario para Añadir Paradas -->
-    <h3 class="section-title">2. Añadir Parada a la Ruta</h3>
-    <form [formGroup]="paradaForm" class="parada-form">
-      <mat-form-field appearance="outline">
-        <mat-label>Cliente</mat-label>
-        <mat-select formControlName="idCliente" required>
-          @for(c of clientes; track c.idcliente){ <mat-option [value]="c.idcliente">{{ c.nombreComercio }}</mat-option> }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Sucursal / Dirección del Cliente</mat-label>
-        <mat-select formControlName="idSucursal" required [disabled]="!paradaForm.get('idCliente')?.value">
-          @for(dir of direccionesFiltradas; track dir.idDireccion){ <mat-option [value]="dir.idDireccion">{{ dir.nombreSucursal }}</mat-option> }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Tipo de Servicio de la Parada</mat-label>
-        <mat-select formControlName="idTipoServicio" required>
-           @for(tipo of tiposDeServicio; track tipo.idTipoServicio){ <mat-option [value]="tipo.idTipoServicio">{{ tipo.nombre }}</mat-option> }
-        </mat-select>
+        <mat-error *ngIf="rutaForm.get('idUnidadTransporte')?.hasError('required')">La unidad es requerida.</mat-error>
       </mat-form-field>
       
-      <mat-form-field appearance="outline" class="full-span">
-        <mat-label>Dirección (Autocompletado)</mat-label>
-        <input matInput formControlName="direccion">
+      <mat-form-field appearance="outline">
+        <mat-label>Kilometraje Inicial</mat-label>
+        <input matInput type="number" formControlName="kmInicial" required>
+        <mat-error *ngIf="rutaForm.get('kmInicial')?.hasError('required')">El KM inicial es requerido.</mat-error>
       </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-span">
-        <mat-label>Notas (Opcional)</mat-label>
-        <textarea matInput formControlName="notas" rows="2"></textarea>
-      </mat-form-field>
-
-      <div class="add-button-container full-span">
-        <button mat-stroked-button color="primary" type="button" (click)="agregarParada()" [disabled]="paradaForm.invalid">
-          <mat-icon>add_location_alt</mat-icon>
-          Añadir Parada a la Lista
-        </button>
-      </div>
     </form>
-    
+
     <mat-divider class="section-divider"></mat-divider>
+
+    <!-- 2. Tabla de Servicios Disponibles -->
+    <h3 class="section-title">2. Seleccionar Servicios para la Ruta</h3>
     
-    <!-- 3. Resumen de Paradas Agregadas -->
-    <h3 class="section-title">3. Resumen de Paradas</h3>
-    @if (paradasAgregadas.length > 0) {
-      <div class="paradas-list-container">
-        @for (parada of paradasAgregadas; track $index) {
-          <mat-card class="parada-card" appearance="outlined">
-            <mat-card-header>
-              <mat-card-title>Parada #{{ $index + 1 }}</mat-card-title>
-              <mat-card-subtitle>{{ getClienteNombre(parada.idCliente) }}</mat-card-subtitle>
-              <span class="spacer"></span>
-              <button mat-icon-button color="warn" (click)="eliminarParada($index)" aria-label="Eliminar esta parada">
-                <mat-icon>delete_outline</mat-icon>
-              </button>
-            </mat-card-header>
-            <mat-card-content class="parada-card-content">
-              <div class="parada-detail">
-                <mat-icon>store</mat-icon>
-                <span><strong>Sucursal:</strong> {{ getSucursalNombre(parada.idSucursal) }}</span>
-              </div>
-              <div class="parada-detail">
-                <mat-icon>miscellaneous_services</mat-icon>
-                <span><strong>Servicio:</strong> {{ getTipoServicioNombre(parada.idTipoServicio) }}</span>
-              </div>
-              <div class="parada-detail">
-                <mat-icon>pin_drop</mat-icon>
-                <span><strong>Dirección:</strong> {{ parada.direccion }}</span>
-              </div>
-              @if(parada.notas) {
-                <div class="parada-detail notas">
-                  <mat-icon>notes</mat-icon>
-                  <span><strong>Notas:</strong> {{ parada.notas }}</span>
-                </div>
-              }
-            </mat-card-content>
-          </mat-card>
-        }
+    @if (isLoading) {
+      <div class="loading-container">
+        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+        <p>Cargando servicios disponibles...</p>
       </div>
     } @else {
-      <div class="no-stops-message-container">
-        <mat-icon class="no-stops-icon">info_outline</mat-icon>
-        <p>Aún no se han agregado paradas a la ruta.</p>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Buscar en servicios...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ej: Cliente, equipo, tipo...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <div class="table-container mat-elevation-z4">
+        <table mat-table [dataSource]="serviciosDisponibles" matSort>
+
+          <!-- Columna de Selección -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="selection.hasValue() && !isAllSelected()"
+                            [aria-label]="checkboxLabel()"></mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? selection.toggle(row) : null"
+                            [checked]="selection.isSelected(row)"
+                            [aria-label]="checkboxLabel(row)"></mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Otras Columnas -->
+          <ng-container matColumnDef="nombreComercio">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Cliente </th>
+            <td mat-cell *matCellDef="let element"> {{element.nombreComercio}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="nombreEquipo">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Equipo </th>
+            <td mat-cell *matCellDef="let element"> {{element.nombreEquipo}} </td>
+          </ng-container>
+          
+          <ng-container matColumnDef="tipoServicio">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo de Servicio </th>
+            <td mat-cell *matCellDef="let element"> {{element.tipo_servicio}} </td>
+          </ng-container>
+          
+          <ng-container matColumnDef="fechaServicio">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Servicio </th>
+            <td mat-cell *matCellDef="let element"> {{element.fechaServicio | date:'dd/MM/yyyy'}} </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasTabla"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasTabla;"></tr>
+          
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="5">No se encontraron servicios que coincidan con el filtro.</td>
+          </tr>
+        </table>
+        <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
       </div>
     }
   </mat-card-content>
 
   <mat-card-actions class="form-actions">
     <button mat-stroked-button type="button" (click)="cancelar()">Cancelar</button>
-    <button mat-raised-button color="primary" (click)="guardarRuta()" [disabled]="rutaForm.invalid || paradasAgregadas.length === 0 || isSaving">
+    <button mat-raised-button color="primary" (click)="guardarRuta()" [disabled]="rutaForm.invalid || selection.isEmpty() || isSaving">
       @if (isSaving) {
         <span>Guardando...</span>
+        <mat-progress-spinner mode="indeterminate" diameter="20" style="margin-left: 8px;"></mat-progress-spinner>
       } @else {
+        <!-- =============================== -->
+        <!-- ===== CORRECCIÓN APLICADA AQUÍ ===== -->
+        <!-- =============================== -->
         <ng-container>
           <mat-icon>save</mat-icon>
-          <span>Guardar Ruta Completa</span>
+          <span>Guardar Ruta ({{selection.selected.length}} servicios)</span>
         </ng-container>
       }
     </button>

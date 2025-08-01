@@ -1,9 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+
+
+
+
+// import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { forkJoin, switchMap } from 'rxjs';
+import { SelectionModel } from '@angular/cdk/collections';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,159 +15,164 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { provideNativeDateAdapter } from '@angular/material/core';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
-
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 
 // Servicios e Interfaces
-import { GeoClientesService } from '../../services/geo_clientes/geo-clientes.service';
-import { GeoTipoServicioService } from '../../services/geo_tipoServicios/geo-tipo-servicio.service';
-import { GeoUnidadTransportesService } from '../../services/geo_unidadTransportes/geo-unidad-transportes.service';
 import { GeoRutasService } from '../../services/geo_rutas/geo-rutas.service';
+import { GeoUnidadTransportesService } from '../../services/geo_unidadTransportes/geo-unidad-transportes.service';
 import { GeoUsuariosService } from '../../services/geo_usuarios/geo-usuarios.service';
-import { GeoClientesDireccion } from '../../interfaces/geo_clientes-direccion';
-import { GeoCliente } from '../../interfaces/geo_clientes';
-import { GeoTipoServicio } from '../../interfaces/geo_tipo-servicios';
 import { GeoUnidadTransporte } from '../../interfaces/geo_unidad-transportes';
 import { GeoUsuario } from '../../interfaces/geo_usuarios';
-import { GeoRutasParada } from '../../interfaces/geo-rutas-parada';
-import { GeoClientesDireccionService } from '../../services/geo_direccionClientes/geo-clientes-direccion.service';
+import { GeoRutaDetallePayload, ServicioDisponible } from '../../interfaces/geo-rutas-detalle';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { GeoRutasDetalleService } from '../../services/geo_rutasDetalle/geo-rutas-detalles.service';
+import { CreateGeoRutaPayload } from '../../interfaces/geo-rutas';
 
 @Component({
   selector: 'app-rutas',
-  standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatSelectModule, MatDatepickerModule,
-    MatCardModule, MatSnackBarModule, MatTableModule, MatDividerModule
+    MatButtonModule, MatIconModule, MatSelectModule, MatCardModule,
+    MatSnackBarModule, MatTableModule, MatDividerModule, MatCheckboxModule,
+    MatPaginatorModule, MatProgressSpinnerModule, MatSortModule, DatePipe
   ],
   templateUrl: './rutas.component.html',
   styleUrls: ['./rutas.component.css'],
-  providers: [provideNativeDateAdapter()],
 })
 export class RutasComponent implements OnInit {
+  // Inyección de dependencias
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private geoRutasService = inject(GeoRutasService);
-  private geoClientesService = inject(GeoClientesService);
-  private geoTipoServicioService = inject(GeoTipoServicioService);
+  private geoRutasDetalleService = inject(GeoRutasDetalleService);
   private geoUnidadTransportesService = inject(GeoUnidadTransportesService);
   private geoUsuariosService = inject(GeoUsuariosService);
-  private geoClientesDireccionService = inject(GeoClientesDireccionService);
 
+  // Formularios y estado
   rutaForm: FormGroup;
-  paradaForm: FormGroup;
+  isLoading = true;
+  isSaving = false;
 
+  // Datos para los Selects
   operadores: GeoUsuario[] = [];
   unidades: GeoUnidadTransporte[] = [];
-  clientes: GeoCliente[] = [];
-  tiposDeServicio: GeoTipoServicio[] = [];
-  
-  private todasLasDirecciones: GeoClientesDireccion[] = [];
-  direccionesFiltradas: GeoClientesDireccion[] = [];
-  
-  paradasAgregadas: GeoRutasParada[] = [];
-  columnasTabla: string[] = ['cliente', 'sucursal', 'tipoServicio', 'direccion', 'acciones'];
-  isSaving = false;
+
+  // Lógica de la tabla de servicios
+  serviciosDisponibles = new MatTableDataSource<ServicioDisponible>();
+  selection = new SelectionModel<ServicioDisponible>(true, []);
+  columnasTabla: string[] = ['select', 'nombreComercio', 'nombreEquipo', 'tipoServicio', 'fechaServicio'];
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor() {
     this.rutaForm = this.fb.group({
       idUsuario: ['', Validators.required],
       idUnidadTransporte: ['', Validators.required],
-      fecha_hora: [new Date(), Validators.required],
-    });
-
-    this.paradaForm = this.fb.group({
-      idCliente: [null, Validators.required],
-      idSucursal: [null, Validators.required],
-      idTipoServicio: [null, Validators.required],
-      direccion: [{ value: '', disabled: true }, Validators.required],
-      notas: [''],
-    });
-
-    this.paradaForm.get('idCliente')!.valueChanges.pipe(takeUntilDestroyed()).subscribe(idCliente => {
-      this.paradaForm.get('idSucursal')?.reset();
-      this.paradaForm.get('direccion')?.reset();
-      if (idCliente) {
-        this.direccionesFiltradas = this.todasLasDirecciones.filter(d => d.idCliente === idCliente);
-      } else {
-        this.direccionesFiltradas = [];
-      }
-    });
-
-    this.paradaForm.get('idSucursal')!.valueChanges.pipe(takeUntilDestroyed()).subscribe(idSucursal => {
-      if (idSucursal) {
-        const direccionEncontrada = this.todasLasDirecciones.find(d => d.idDireccion === idSucursal);
-        this.paradaForm.get('direccion')?.setValue(direccionEncontrada?.direccion || '');
-      }
+      kmInicial: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
     });
   }
 
   ngOnInit(): void {
-    this.cargarDatosDeSoporte();
+    this.cargarDatosIniciales();
   }
 
-  cargarDatosDeSoporte(): void {
+  cargarDatosIniciales(): void {
+    this.isLoading = true;
     forkJoin({
       operadores: this.geoUsuariosService.getUsuarios(),
       unidades: this.geoUnidadTransportesService.getUnidadesTransporte(),
-      clientes: this.geoClientesService.getClientes(),
-      tiposServicio: this.geoTipoServicioService.getTiposServicio(),
-      direcciones: this.geoClientesDireccionService.getClientesDireccion(),
+      servicios: this.geoRutasDetalleService.findServiciosDisponiblesParaRuta(),
     }).subscribe({
       next: (data) => {
         this.operadores = data.operadores;
         this.unidades = data.unidades.filter(u => u.activo);
-        this.clientes = data.clientes;
-        this.tiposDeServicio = data.tiposServicio.filter(s => s.estado);
-        this.todasLasDirecciones = data.direcciones;
+        this.serviciosDisponibles.data = data.servicios;
+        this.serviciosDisponibles.paginator = this.paginator;
+        this.serviciosDisponibles.sort = this.sort;
+        this.isLoading = false;
       },
-      error: () => this.mostrarNotificacion('Error al cargar datos iniciales.', 'error'),
+      error: () => {
+        this.isLoading = false;
+        this.mostrarNotificacion('Error al cargar datos iniciales. Verifique la conexión con el backend.', 'error');
+      },
     });
   }
-
-  agregarParada(): void {
-    if (this.paradaForm.invalid) {
-      this.mostrarNotificacion('Completa todos los campos de la parada.', 'advertencia');
-      return;
+  
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.serviciosDisponibles.filter = filterValue.trim().toLowerCase();
+    if (this.serviciosDisponibles.paginator) {
+      this.serviciosDisponibles.paginator.firstPage();
     }
-    this.paradasAgregadas.push(this.paradaForm.getRawValue());
-    this.paradaForm.reset();
-    this.direccionesFiltradas = [];
   }
 
-  eliminarParada(index: number): void {
-    this.paradasAgregadas.splice(index, 1);
+  isAllSelected() {
+    return this.selection.selected.length === this.serviciosDisponibles.data.length;
+  }
+
+  toggleAllRows() {
+    this.isAllSelected() ? this.selection.clear() : this.selection.select(...this.serviciosDisponibles.data);
+  }
+
+  checkboxLabel(row?: ServicioDisponible): string {
+    if (!row) return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.idServicioEquipo}`;
   }
 
   guardarRuta(): void {
-    if (this.rutaForm.invalid || this.paradasAgregadas.length === 0) {
-      this.mostrarNotificacion('Debes completar los datos de la ruta y agregar al menos una parada.', 'advertencia');
+    if (this.rutaForm.invalid) {
+      this.mostrarNotificacion('Complete los datos generales de la ruta.', 'advertencia');
+      return;
+    }
+    if (this.selection.isEmpty()) {
+      this.mostrarNotificacion('Debe seleccionar al menos un servicio para la ruta.', 'advertencia');
       return;
     }
 
     this.isSaving = true;
-    const payload = {
-      ...this.rutaForm.value,
-      fecha_hora: new Date(this.rutaForm.value.fecha_hora).toISOString(),
-      paradas: this.paradasAgregadas,
-    };
+    
+    // CORRECCIÓN CLAVE: El tipo de 'payloadRuta' ahora es el correcto 'CreateGeoRutaPayload'
+    const payloadRuta: CreateGeoRutaPayload = this.rutaForm.value;
 
-    this.geoRutasService.createRuta(payload).subscribe({
+    this.geoRutasService.createRuta(payloadRuta).pipe(
+      switchMap(nuevaRuta => {
+        const detallesPayload: GeoRutaDetallePayload[] = this.selection.selected.map(servicio => ({
+          idRuta: nuevaRuta.idRuta,
+          idServicioEquipo: servicio.idServicioEquipo,
+          noSerie: servicio.NoSerie ?? undefined,
+          nombreEquipo: servicio.nombreEquipo,
+          fechaServicio: servicio.fechaServicio,
+          hora: servicio.hora,
+          tipoServicio: servicio.tipo_servicio,
+          descripcion: servicio.descripcion ?? undefined,
+          observacionesServicio: servicio.observaciones_servicio ?? undefined,
+          idContrato: servicio.idContrato,
+          nombreComercio: servicio.nombreComercio,
+          status: 1, // Por defecto: 1 = Pendiente
+        }));
+        
+        const requests = detallesPayload.map(payload => this.geoRutasDetalleService.create(payload));
+        return forkJoin(requests);
+      })
+    ).subscribe({
       next: () => {
         this.isSaving = false;
-        this.mostrarNotificacion('Ruta creada con éxito.', 'exito');
-        this.router.navigate(['/dashboard/rutas']);
+        this.mostrarNotificacion('Ruta y servicios guardados con éxito.', 'exito');
+        this.router.navigate(['/rutas']); // O a donde deba redirigir
       },
       error: (err) => {
         this.isSaving = false;
-        console.error('Error detallado del backend:', err);
-        this.mostrarNotificacion('Error al crear la ruta.', 'error');
+        console.error('Error detallado al guardar la ruta:', err);
+        this.mostrarNotificacion('Error al guardar los servicios de la ruta.', 'error');
       }
     });
   }
@@ -172,17 +181,11 @@ export class RutasComponent implements OnInit {
     this.router.navigate(['/dashboard/rutas']);
   }
 
-  getClienteNombre(idCliente: number): string {
-    return this.clientes.find(c => c.idcliente === idCliente)?.nombreComercio || 'N/A';
-  }
-  getSucursalNombre(idSucursal: number): string {
-    return this.todasLasDirecciones.find(d => d.idDireccion === idSucursal)?.nombreSucursal || 'N/A';
-  }
-  getTipoServicioNombre(idTipo: number): string {
-    return this.tiposDeServicio.find(t => t.idTipoServicio === idTipo)?.nombre || 'N/A';
-  }
-
   private mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'advertencia') {
-    this.snackBar.open(mensaje, 'Cerrar', { duration: 4000, panelClass: [`snackbar-${tipo}`], verticalPosition: 'top' });
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 4000,
+      panelClass: [`snackbar-${tipo}`],
+      verticalPosition: 'top'
+    });
   }
 }

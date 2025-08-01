@@ -4,7 +4,13 @@ export interface GeoRutas {
   idRuta: number;
   idUsuario: number;
   idUnidadTransporte: number;
-  fecha_hora: Date | string;
-  kmlInicial?: string;
-  paradas: GeoRutasParada[];
+  fechaHora: Date | string;
+  kmInicial: string;
+}
+
+
+export interface CreateGeoRutaPayload {
+  idUsuario: number;
+  idUnidadTransporte: number;
+  kmInicial: string;
 }
