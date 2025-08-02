@@ -30,7 +30,7 @@
           <!-- Columna Fecha -->
           <ng-container matColumnDef="fecha">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha </th>
-            <!-- ===== CORRECCIÓN AQUÍ ===== -->
+            <!-- ===== SOLUCIÓN AQUÍ: Usamos el DatePipe directamente ===== -->
             <td mat-cell *matCellDef="let ruta"> {{ ruta.fechaHora | date:'dd/MM/yyyy' }} </td>
           </ng-container>
 
@@ -48,7 +48,7 @@
 
           <!-- Columna Clientes (Paradas) -->
           <ng-container matColumnDef="clientes">
-            <th mat-header-cell *matHeaderCellDef> Clientes (Paradas) </th>
+            <th mat-header-cell *matHeaderCellDef> Clientes </th>
             <td mat-cell *matCellDef="let ruta">
               <button mat-stroked-button color="accent" (click)="verDetalles(ruta.detalles, modalDetalles)" [disabled]="!ruta.detalles || ruta.detalles.length === 0">
                 <mat-icon>people_alt</mat-icon>

@@ -178,7 +178,7 @@ export class RutasComponent implements OnInit {
   }
 
   cancelar(): void {
-    this.router.navigate(['/dashboard/rutas']);
+    this.router.navigate(['/rutas']);
   }
 
   private mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'advertencia') {

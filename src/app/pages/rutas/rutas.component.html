@@ -22,7 +22,7 @@
         <mat-label>Unidad de Transporte</mat-label>
         <mat-select formControlName="idUnidadTransporte" required>
           @for(unidad of unidades; track unidad.idUnidadTransporte){
-            <mat-option [value]="unidad.idUnidadTransporte">{{ unidad.nombreUnidad }}</mat-option>
+            <mat-option [value]="unidad.idUnidadTransporte">{{ unidad.placaUnidad }}</mat-option>
           }
         </mat-select>
         <mat-error *ngIf="rutaForm.get('idUnidadTransporte')?.hasError('required')">La unidad es requerida.</mat-error>
