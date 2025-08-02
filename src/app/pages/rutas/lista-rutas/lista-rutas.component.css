@@ -1,66 +1,95 @@
-.list-page-container {
-  padding: 24px;
+/* Contenedor principal de la tarjeta de la página */
+.page-card {
+  margin: 20px;
 }
 
-.list-header {
+/* Encabezado con título y botón */
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  padding: 0 24px 16px;
+  flex-wrap: wrap; /* Para pantallas pequeñas */
+  gap: 16px;
 }
 
-.list-header h1 {
+.page-header mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 0;
-  font-weight: 500;
 }
 
-.table-container {
-  border-radius: 8px;
-  overflow: hidden;
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
 }
 
-table {
+/* Campo de filtro */
+.filter-field {
   width: 100%;
+  padding: 0 0 16px;
 }
 
-/* Centrar los botones de acción */
-td.mat-mdc-cell:last-of-type {
-  text-align: right;
-}
-th.mat-mdc-header-cell:last-of-type {
-  text-align: right;
-}
-/* Colores claros para texto y bordes de tabla en modo oscuro */
-.table-container table {
-  color: #f1f1f1;
-  background-color: #1e1e1e;
+/* Contenedor de la tabla para overflow */
+.table-container {
+  overflow: auto;
+  border-radius: 8px;
 }
 
-.mat-mdc-header-cell,
-.mat-mdc-cell {
-  color: #f1f1f1 !important;
-  background-color: #1e1e1e !important;
-  border-bottom: 1px solid #3a3a3a;
-}
-
-/* Botones de acción en modo oscuro */
-.mat-icon-button {
-  color: #90caf9 !important; /* Azul claro */
-}
-
-/* Encabezado */
-.list-header h1 {
-  color: #ffffff;
-}
-
-/* Mensaje de "No se encontraron rutas" */
-.no-data-cell {
+/* Centrar Acciones en la cabecera */
+.actions-header {
   text-align: center;
-  color: #cccccc;
-  font-style: italic;
+}
+/* Centrar botones de acciones */
+td.mat-mdc-cell.mdc-data-table__cell.cdk-cell.cdk-column-acciones {
+  text-align: center;
 }
 
-/* Spinner o textos de carga */
-.loading-container p {
-  color: #ffffff;
+
+/* Efecto hover en las filas de la tabla */
+.table-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Mensajes de carga y sin datos */
+.loading-container, .no-data-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: grey;
+}
+.no-data-message mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/* Estilos para el Modal */
+.detalle-card {
+  margin-bottom: 16px;
+}
+
+.detalle-avatar {
+  background-color: #3f51b5; /* color primary */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detalle-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.detalle-info-row mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  color: #666;
 }
