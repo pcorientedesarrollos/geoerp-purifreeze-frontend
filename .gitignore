@@ -43,3 +43,4 @@ Thumbs.db
 
 # Ignorar index.html para mantener la API Key local
 src/index.html
+src/index.html
