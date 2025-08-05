@@ -26,7 +26,7 @@ export const routes: Routes = [
     path: '',
     component: MainLayoutComponent,
     // --- CAMBIO CLAVE: El guardián protege a este componente y a TODOS sus hijos ---
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     children: [
       // Si el usuario está autenticado, puede acceder a cualquiera de estas rutas:
       {

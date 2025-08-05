@@ -4,10 +4,18 @@
       <mat-icon>alt_route</mat-icon>
       <h1>Gestión de Rutas</h1>
     </mat-card-title>
-    <button mat-raised-button color="primary" [routerLink]="['/rutas/crear']">
-      <mat-icon>add</mat-icon>
-      <span>Crear Nueva Ruta</span>
-    </button>
+ 
+    <span class="spacer"></span>
+
+<!-- Dentro de tu mat-card-header -->
+<div class="header-actions">
+  <!-- Botón PRINCIPAL (elevado y con color) para la acción primaria -->
+  <button mat-raised-button color="primary" [routerLink]="['/rutas/crear']">
+    <mat-icon>add</mat-icon>
+    <span>Ruta</span>
+  </button>
+</div>
+
   </mat-card-header>
 
   <mat-card-content>

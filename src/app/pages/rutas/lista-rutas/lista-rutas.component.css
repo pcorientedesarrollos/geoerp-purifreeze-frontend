@@ -1,95 +1,300 @@
-/* Contenedor principal de la tarjeta de la página */
+/*
+================================================
+ESTILOS GENERALES Y DE LA TARJETA PRINCIPAL
+================================================
+*/
+
+/* --- TARJETA PRINCIPAL DE LA PÁGINA --- */
 .page-card {
-  margin: 20px;
+  max-width: 1200px;
+  margin: 24px auto;
+  background-color: #2c2c2c;
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
 }
 
-/* Encabezado con título y botón */
+
+/*
+================================================
+ENCABEZADO DE LA PÁGINA (TÍTULO Y BOTONES)
+================================================
+*/
 .page-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 24px 16px;
-  flex-wrap: wrap; /* Para pantallas pequeñas */
-  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.page-header mat-card-title {
+.spacer {
+  flex: 1 1 auto;
+}
+
+mat-card-title {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 0;
 }
 
-.page-header h1 {
+mat-card-title h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-/* Campo de filtro */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-actions button[mat-stroked-button] {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.header-actions button[mat-raised-button] {
+  background-color: #3f51b5;
+  color: #ffffff;
+}
+
+
+/*
+================================================
+CONTENIDO DE LA TARJETA (FILTRO Y TABLA)
+================================================
+*/
+mat-card-content {
+  padding: 24px;
+}
+
 .filter-field {
-  width: 100%;
-  padding: 0 0 16px;
+  width: 40%;
+  margin-bottom: 24px;
 }
 
-/* Contenedor de la tabla para overflow */
+.filter-field .mat-mdc-text-field-wrapper {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.filter-field .mdc-notched-outline * {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.filter-field input,
+.filter-field mat-label,
+.filter-field mat-icon {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .table-container {
   overflow: auto;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #2c2c2c;
 }
 
-/* Centrar Acciones en la cabecera */
-.actions-header {
-  text-align: center;
+table {
+  width: 100%;
+  background-color: transparent;
 }
-/* Centrar botones de acciones */
-td.mat-mdc-cell.mdc-data-table__cell.cdk-cell.cdk-column-acciones {
-  text-align: center;
+
+tr.mat-mdc-header-row {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+th.mat-mdc-header-cell {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+tr.mat-mdc-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+mat-paginator {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 
-/* Efecto hover en las filas de la tabla */
-.table-row:hover {
-  background-color: rgba(223, 217, 217, 0.329);
-}
-
-/* Mensajes de carga y sin datos */
+/*
+================================================
+ESTADOS (CARGA Y SIN DATOS)
+================================================
+*/
 .loading-container, .no-data-message {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 40px;
-  color: grey;
+  color: rgba(255, 255, 255, 0.7);
+  min-height: 200px;
 }
+
 .no-data-message mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-}
-
-/* Estilos para el Modal */
-.detalle-card {
   margin-bottom: 16px;
 }
 
-.detalle-avatar {
-  background-color: #09113d; /* color primary */
-  color: rgba(255, 255, 255, 0.992);
+
+/*
+================================================
+ESTILOS PARA LA VENTANA MODAL (MAT-DIALOG)
+================================================
+*/
+:host ::ng-deep .mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #303030;
+  border-radius: 8px !important;
+}
+
+h2[mat-dialog-title] {
   display: flex;
   align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+mat-dialog-content.mat-typography {
+  padding: 24px !important;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.detalle-card {
+  background-color: #3f3f3f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  transition: box-shadow 0.3s ease;
+}
+
+.detalle-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.detalle-card:last-child {
+  margin-bottom: 0;
+}
+
+.detalle-card mat-card-header {
+  padding: 16px;
+  align-items: flex-start !important; /* Mantiene la alineación superior */
+}
+
+
+/*
+================================================
+=== LA CORRECCIÓN DE CENTRADO ESTÁ AQUÍ ===
+================================================
+*/
+.detalle-avatar {
+  background-color: #3f51b5;
+  color: white;
+  font-weight: bold;
+  
+  /* Convierte el avatar en un contenedor flex */
+  display: flex;
+  /* Centra el número horizontalmente */
   justify-content: center;
+  /* Centra el número verticalmente */
+  align-items: center;
+}
+/* === FIN DE LA CORRECCIÓN === */
+
+
+.detalle-card mat-card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.detalle-card mat-card-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detalle-card mat-card-content {
+  padding: 0 16px 16px 16px;
 }
 
 .detalle-info-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
 }
 
 .detalle-info-row mat-icon {
-  font-size: 18px;
-  height: 18px;
-  width: 18px;
-  color: #0d0c0c;
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.detalle-info-row strong {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+mat-dialog-actions {
+  padding: 12px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #303030;
+}
+
+mat-dialog-actions button[mat-stroked-button] {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+
+/*
+================================================
+DISEÑO RESPONSIVO
+================================================
+*/
+@media (max-width: 768px) {
+  .page-header {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .spacer {
+    display: none;
+  }
+  mat-card-title h1 {
+    font-size: 20px;
+  }
+  .header-actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
 }

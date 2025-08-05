@@ -1,126 +1,143 @@
+/* --- TARJETA PRINCIPAL DEL FORMULARIO --- */
 .form-card {
   max-width: 1200px;
   margin: 24px auto;
+  background-color: #2c2c2c; /* Fondo oscuro principal */
+  color: rgba(255, 255, 255, 0.87); /* Texto claro por defecto */
+  padding: 24px;
+  border-radius: 8px;
 }
 
+/* --- Títulos de las secciones (Datos Generales, Seleccionar Servicios) --- */
 .section-title {
   margin-top: 24px;
   margin-bottom: 16px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7); /* Color de texto más suave */
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12); /* Borde sutil */
 }
 
+/* --- Divisor entre secciones --- */
 .section-divider {
   margin-top: 24px;
   margin-bottom: 24px;
+  background-color: rgba(255, 255, 255, 0.12); /* Color del divisor */
 }
 
-.header-form, .parada-form {
+/* --- Contenedor de los campos del formulario --- */
+.header-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
-.full-span {
-  grid-column: 1 / -1;
+/* --- Estilos para los campos del formulario (Inputs, Selects, etc.) --- */
+mat-form-field {
+  width: 100%;
 }
 
-.add-button-container {
-  display: flex;
-  justify-content: flex-end;
+mat-form-field .mat-mdc-text-field-wrapper {
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* --- ESTILOS PARA LA NUEVA LISTA DE TARJETAS --- */
-
-.paradas-list-container {
-  display: grid;
-  /* Crea una cuadrícula responsiva para las tarjetas */
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+mat-form-field .mdc-notched-outline * {
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-.parada-card {
-  transition: box-shadow 0.3s ease;
+mat-form-field input,
+mat-form-field mat-label,
+mat-form-field mat-select,
+mat-form-field mat-icon {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.parada-card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+mat-form-field .mat-mdc-select-arrow {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.parada-card .mat-card-header {
-  padding: 16px 16px 0 16px;
-}
-
-/* Un pequeño truco para empujar el botón de eliminar a la derecha */
-.spacer {
-  flex: 1 1 auto;
-}
-
-.parada-card-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* Espacio entre cada línea de detalle */
-}
-
-.parada-detail {
-  display: flex;
-  align-items: center;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.parada-detail mat-icon {
-  margin-right: 12px;
-  color: #673ab7; /* Color principal de Angular Material o el que prefieras */
-  font-size: 20px;
-  height: 20px;
-  width: 20px;
-}
-
-.parada-detail span {
-  flex: 1;
-}
-
-.parada-detail.notas {
-  background-color: #f5f5f5; /* Un fondo sutil para las notas */
-  padding: 8px;
-  border-radius: 4px;
-  margin-top: 8px;
-  font-style: italic;
-}
-
-/* --- ESTILOS PARA EL MENSAJE DE "NO HAY PARADAS" --- */
-
-.no-stops-message-container {
-  text-align: center;
-  color: rgba(0, 0, 0, 0.54);
-  padding: 32px;
-  border: 2px dashed rgba(0, 0, 0, 0.12);
+/* --- Estilos para la tabla de selección de servicios --- */
+.table-container {
+  overflow: auto;
   border-radius: 8px;
-  margin-top: 16px;
+  background-color: #2c2c2c;
+}
+
+table {
+  width: 100%;
+  background-color: transparent;
+}
+
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+th.mat-mdc-header-cell {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+tr.mat-mdc-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* --- Estilos para los Checkbox en tema oscuro --- */
+.mat-mdc-checkbox {
+  --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.7);
+  --mdc-checkbox-unselected-pressed-icon-color: rgba(255, 255, 255, 0.7);
+  --mdc-checkbox-unselected-focus-icon-color: rgba(255, 255, 255, 0.7);
+  --mdc-checkbox-unselected-hover-icon-color: rgba(255, 255, 255, 0.7);
+  --mdc-checkbox-disabled-selected-icon-color: rgba(255, 255, 255, 0.3);
+  --mdc-checkbox-disabled-unselected-icon-color: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Paginador y mensajes de la tabla --- */
+.mat-mdc-paginator {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mat-row .mat-cell.mat-no-data-row {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* --- Mensaje de carga --- */
+.loading-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.7);
+  min-height: 200px;
 }
 
-.no-stops-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 8px;
-}
-
-/* --- ESTILOS PARA LAS ACCIONES FINALES --- */
-
+/* --- Acciones finales del formulario (Botones) --- */
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 16px !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  gap: 12px; /* Mayor espaciado entre botones */
+  padding: 16px 0 0 0 !important; /* Quitar padding lateral para alinear */
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   margin-top: 24px;
+}
+
+/* Botón de Cancelar */
+.form-actions button[mat-stroked-button] {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Botón principal de Guardar */
+.form-actions button[mat-raised-button] {
+  background-color: #3f51b5; /* Mismo color primario que en la otra pantalla */
+  color: #ffffff;
+}
+
+.form-actions button[mat-raised-button]:disabled {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.3);
 }

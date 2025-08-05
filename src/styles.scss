@@ -20,13 +20,13 @@ body {
 }
 
 /* 2. Estilos para las OPCIONES de los Selectores */
-.mat-mdc-option {
-  color: rgba(255, 255, 255, 0.87);
-  &:hover:not(.mdc-list-item--disabled) { background: rgba(255, 255, 255, 0.08); }
-  &.mdc-list-item--selected { background: rgba(63, 81, 181, 0.3); color: white;
-    .mat-pseudo-checkbox { display: none; }
-  }
-}
+// .mat-mdc-option {
+//   color: rgba(255, 255, 255, 0.87);
+//   &:hover:not(.mdc-list-item--disabled) { background: rgba(255, 255, 255, 0.08); }
+//   &.mdc-list-item--selected { background: rgba(63, 81, 181, 0.3); color: white;
+//     .mat-pseudo-checkbox { display: none; }
+//   }
+// }
 
 /* 3. Estilos para el DATEPICKER (Calendario) */
 .mat-datepicker-content-container { background: #2c2c2c !important; }
@@ -63,3 +63,28 @@ body {
 }
 
 /* --- FIN DE CORRECCIONES GLOBALES --- */
+/*
+   Estilos globales para componentes de Angular Material en tema oscuro
+*/
+.mat-mdc-select-panel.mat-mdc-select-panel {
+  background: #3a3a3a !important; /* Un fondo oscuro ligeramente diferente para el panel */
+}
+
+.mat-mdc-option {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.mat-mdc-option.mdc-list-item--selected,
+.mat-mdc-option:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Opcional: Estilo para el fondo del diálogo del modal */
+.mat-mdc-dialog-container .mdc-dialog__surface {
+    background-color: #2c2c2c !important;
+    color: white !important;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__title {
+    color: white !important;
+}
