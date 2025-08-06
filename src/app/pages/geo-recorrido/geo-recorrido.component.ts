@@ -18,7 +18,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, distinctUntilChanged, forkJoin, map } from 'rxjs';
+import { debounceTime, distinctUntilChanged, forkJoin, map, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // --- Servicios e Interfaces ---
 import { GeoRecorridoService } from '../../services/geo-recorrido/geo-recorrido.service';
@@ -31,7 +33,6 @@ import {
 import { GeoRecorrido } from '../../interfaces/geo-recorrido';
 import { GeoRutas } from '../../interfaces/geo-rutas';
 import { ClienteGeolocalizado } from '../../interfaces/cliente-geolocalizado';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-geo-recorrido',
@@ -61,9 +62,10 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private datePipe = inject(DatePipe);
 
-  // --- Estado del Componente ---
+  // Para interactuar con el servicio de direcciones de Google Maps
+  private directionsService!: google.maps.DirectionsService;
+
   public filterControl = new FormControl('', { nonNullable: true });
-  // ===================== CORRECCIÓN AQUÍ =====================
   public displayedColumns: string[] = [
     'idRuta',
     'idUsuario',
@@ -75,7 +77,6 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
   public mapaVisible = true;
   public isLoadingData = false;
 
-  // --- Datos para el Mapa ---
   public mapRoutes: MapRoute[] = [];
   public mapMarkers: MapMarker[] = [];
   public mapCenter: google.maps.LatLngLiteral = { lat: 20.9754, lng: -89.6169 };
@@ -85,6 +86,254 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('mapaRecorridos') private appMapComponent!: MapsComponent;
 
+  constructor() {
+    this.directionsService = new google.maps.DirectionsService();
+  }
+
+  // (ngOnInit, ngAfterViewInit, cargarRutasMaestras, etc. permanecen igual)
+  // ...
+
+  seleccionarRuta(ruta: GeoRutas): void {
+    if (this.isLoadingData) return;
+
+    if (this.selectedRutaId === ruta.idRuta) {
+      this.selectedRutaId = null;
+      this.mapRoutes = [];
+      this.mapMarkers = [];
+      return;
+    }
+
+    this.isLoadingData = true;
+    this.selectedRutaId = ruta.idRuta;
+    this.mapRoutes = [];
+    this.mapMarkers = [];
+
+    forkJoin({
+      recorrido: this.recorridoService.getRecorridos().pipe(
+        map((recorridos) => recorridos.filter((r) => r.idRuta === ruta.idRuta)),
+        catchError(() => of([])) // Si falla, devuelve un array vacío
+      ),
+      clientes: this.geoRutasService
+        .getClientesGeolocalizados(ruta.idRuta)
+        .pipe(
+          catchError(() => of([])) // Si falla, devuelve un array vacío
+        ),
+    }).subscribe({
+      next: ({ recorrido, clientes }) => {
+        // Ahora el procesamiento se hace en un método asíncrono
+        this.procesarDatosDeRuta(recorrido, clientes).then(() => {
+          if (!this.mapaVisible) {
+            this.toggleMapa();
+          } else {
+            this.redibujarYCentrarMapa();
+          }
+          this.isLoadingData = false;
+        });
+      },
+      error: () => {
+        this.mostrarNotificacion('Error fatal al cargar los datos.', 'error');
+        this.isLoadingData = false;
+      },
+    });
+  }
+
+  // =================================================================================
+  // === MÉTODO PRINCIPAL DE PROCESAMIENTO (AHORA ASÍNCRONO) =========================
+  // =================================================================================
+  private async procesarDatosDeRuta(
+    recorrido: GeoRecorrido[],
+    clientes: ClienteGeolocalizado[]
+  ): Promise<void> {
+    const puntosRecorrido = recorrido
+      .sort(
+        (a, b) =>
+          new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime()
+      )
+      .map((p) => ({ lat: Number(p.latitud), lng: Number(p.longitud) }));
+
+    const marcadoresTemporales: MapMarker[] = [];
+    const rutasTemporales: MapRoute[] = [];
+
+    // --- 1. Determinar qué clientes fueron visitados ---
+    const VISIT_RADIUS_METERS = 50; // El repartidor debe pasar a 50 metros o menos del cliente
+    const clientesVisitados: ClienteGeolocalizado[] = [];
+    const clientesNoVisitados: ClienteGeolocalizado[] = [];
+
+    if (puntosRecorrido.length > 0) {
+      clientes.forEach((cliente) => {
+        const clientePos = new google.maps.LatLng(
+          parseFloat(cliente.latitud),
+          parseFloat(cliente.longitud)
+        );
+        const fueVisitado = puntosRecorrido.some((puntoGps) => {
+          const puntoGpsPos = new google.maps.LatLng(
+            puntoGps.lat,
+            puntoGps.lng
+          );
+          return (
+            google.maps.geometry.spherical.computeDistanceBetween(
+              clientePos,
+              puntoGpsPos
+            ) < VISIT_RADIUS_METERS
+          );
+        });
+
+        if (fueVisitado) {
+          clientesVisitados.push(cliente);
+        } else {
+          clientesNoVisitados.push(cliente);
+        }
+      });
+    } else {
+      // Si no hay recorrido GPS, todos los clientes se marcan como no visitados
+      clientesNoVisitados.push(...clientes);
+    }
+
+    // --- 2. Crear los marcadores con iconos distintivos ---
+    // Icono para clientes VISITADOS (Verde)
+    clientesVisitados.forEach((c) =>
+      marcadoresTemporales.push(this.crearMarcadorCliente(c, true))
+    );
+    // Icono para clientes NO VISITADOS (Gris)
+    clientesNoVisitados.forEach((c) =>
+      marcadoresTemporales.push(this.crearMarcadorCliente(c, false))
+    );
+
+    // --- 3. Dibujar el RECORRIDO REAL (Trazo GPS Naranja) ---
+    if (puntosRecorrido.length > 0) {
+      rutasTemporales.push({
+        idRecorrido: this.selectedRutaId! * 100, // ID único para el trazo real
+        path: puntosRecorrido,
+        options: {
+          strokeColor: '#FF5722',
+          strokeOpacity: 0.8,
+          strokeWeight: 6,
+          zIndex: 5,
+        },
+      });
+      // Añadir marcador de inicio
+      marcadoresTemporales.push(this.crearMarcadorInicio(puntosRecorrido[0]));
+      // Añadir marcador de última posición
+      marcadoresTemporales.push(
+        this.crearMarcadorFin(puntosRecorrido[puntosRecorrido.length - 1])
+      );
+    }
+
+    // --- 4. Calcular y dibujar la RUTA IDEAL (Línea Azul en calles) ---
+    if (clientesVisitados.length > 0 && puntosRecorrido.length > 0) {
+      const waypoints = clientesVisitados.map((c) => ({
+        location: new google.maps.LatLng(
+          parseFloat(c.latitud),
+          parseFloat(c.longitud)
+        ),
+        stopover: true,
+      }));
+
+      const request: google.maps.DirectionsRequest = {
+        origin: puntosRecorrido[0],
+        destination: puntosRecorrido[puntosRecorrido.length - 1],
+        waypoints: waypoints,
+        travelMode: google.maps.TravelMode.DRIVING,
+        optimizeWaypoints: true, // Pide a Google que reordene los waypoints para la ruta más corta
+      };
+
+      try {
+        const result = await this.directionsService.route(request);
+        if (result.routes.length > 0) {
+          const path = result.routes[0].overview_path.map((p) => ({
+            lat: p.lat(),
+            lng: p.lng(),
+          }));
+          rutasTemporales.push({
+            idRecorrido: this.selectedRutaId!, // ID único para la ruta ideal
+            path: path,
+            options: {
+              strokeColor: '#4285F4',
+              strokeOpacity: 0.7,
+              strokeWeight: 8,
+              zIndex: 4,
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error al calcular la ruta de Google Directions:', error);
+        this.mostrarNotificacion(
+          'No se pudo calcular la ruta óptima en las calles.',
+          'advertencia'
+        );
+      }
+    }
+
+    // --- 5. Asignar todo al estado del componente ---
+    this.mapMarkers = marcadoresTemporales;
+    this.mapRoutes = rutasTemporales;
+  }
+
+  // --- Métodos ayudantes para crear marcadores (más limpio) ---
+  private crearMarcadorCliente(
+    cliente: ClienteGeolocalizado,
+    visitado: boolean
+  ): MapMarker {
+    return {
+      position: {
+        lat: parseFloat(cliente.latitud),
+        lng: parseFloat(cliente.longitud),
+      },
+      options: {
+        title: `${cliente.nombreComercio} (${
+          visitado ? 'VISITADO' : 'NO VISITADO'
+        })`,
+        icon: {
+          path: 'M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z', // Icono de tienda
+          fillColor: visitado ? '#34A853' : '#BDBDBD', // Verde si fue visitado, gris si no
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: '#FFFFFF',
+          scale: 1.5,
+          anchor: new google.maps.Point(12, 12),
+        },
+      },
+    };
+  }
+
+  private crearMarcadorInicio(posicion: google.maps.LatLngLiteral): MapMarker {
+    return {
+      position: posicion,
+      options: {
+        title: 'Inicio de la Ruta',
+        icon: {
+          path: 'M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z',
+          fillColor: '#03A9F4',
+          fillOpacity: 1,
+          strokeWeight: 1.5,
+          strokeColor: '#FFFFFF',
+          scale: 1.5,
+          anchor: new google.maps.Point(5, 21),
+        },
+      },
+    };
+  }
+
+  private crearMarcadorFin(posicion: google.maps.LatLngLiteral): MapMarker {
+    return {
+      position: posicion,
+      options: {
+        title: 'Última Posición Registrada',
+        icon: {
+          path: 'M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h6.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z',
+          fillColor: '#EA4335',
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: '#FFFFFF',
+          scale: 1.4,
+          anchor: new google.maps.Point(12, 12),
+        },
+        zIndex: 999,
+      },
+    };
+  }
+
+  // (El resto de métodos como redibujarYCentrarMapa y mostrarNotificacion permanecen igual)
   ngOnInit(): void {
     this.cargarRutasMaestras();
     this.filterControl.valueChanges
@@ -99,7 +348,6 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
       data: GeoRutas,
       filter: string
     ): boolean => {
-      // ===================== CORRECCIÓN AQUÍ =====================
       const dataStr = (
         data.idRuta.toString() +
         data.idUsuario.toString() +
@@ -136,93 +384,6 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     }
   }
 
-  seleccionarRuta(ruta: GeoRutas): void {
-    if (this.isLoadingData) return;
-
-    if (this.selectedRutaId === ruta.idRuta) {
-      this.selectedRutaId = null;
-      this.mapRoutes = [];
-      this.mapMarkers = [];
-      return;
-    }
-
-    this.isLoadingData = true;
-    this.selectedRutaId = ruta.idRuta;
-    this.mapRoutes = [];
-    this.mapMarkers = [];
-
-    forkJoin({
-      recorrido: this.recorridoService
-        .getRecorridos()
-        .pipe(
-          map((recorridos) =>
-            recorridos.filter((r) => r.idRuta === ruta.idRuta)
-          )
-        ),
-      clientes: this.geoRutasService.getClientesGeolocalizados(ruta.idRuta),
-    }).subscribe({
-      next: ({ recorrido, clientes }) => {
-        this.procesarDatosParaMapa(recorrido, clientes);
-        if (!this.mapaVisible) {
-          this.toggleMapa();
-        } else {
-          this.redibujarYCentrarMapa();
-        }
-        this.isLoadingData = false;
-      },
-      error: () => {
-        this.mostrarNotificacion(
-          'Error al cargar los datos del recorrido.',
-          'error'
-        );
-        this.isLoadingData = false;
-      },
-    });
-  }
-
-  private procesarDatosParaMapa(
-    recorrido: GeoRecorrido[],
-    clientes: ClienteGeolocalizado[]
-  ): void {
-    const puntosRecorrido = recorrido
-      .sort(
-        (a, b) =>
-          new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime()
-      )
-      .map((p) => ({ lat: Number(p.latitud), lng: Number(p.longitud) }));
-
-    this.mapRoutes = [
-      {
-        idRecorrido: this.selectedRutaId!,
-        path: puntosRecorrido,
-        options: {
-          strokeColor: '#FF0000',
-          strokeOpacity: 0.7,
-          strokeWeight: 5,
-          zIndex: 2,
-        },
-      },
-    ];
-
-    this.mapMarkers = clientes.map((cliente) => ({
-      position: {
-        lat: parseFloat(cliente.latitud),
-        lng: parseFloat(cliente.longitud),
-      },
-      options: {
-        title: `${cliente.nombreComercio}\n${cliente.direccion}`,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#1E90FF',
-          fillOpacity: 1,
-          strokeWeight: 1,
-          strokeColor: '#FFFFFF',
-        },
-      },
-    }));
-  }
-
   private redibujarYCentrarMapa(): void {
     const mapaGoogle = this.appMapComponent?.map?.googleMap;
     if (!mapaGoogle) return;
@@ -234,7 +395,7 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     this.mapMarkers.forEach((m) => bounds.extend(m.position));
 
     if (!bounds.isEmpty()) {
-      mapaGoogle.fitBounds(bounds, 60);
+      mapaGoogle.fitBounds(bounds, 80);
     } else {
       mapaGoogle.setCenter(this.mapCenter);
       mapaGoogle.setZoom(this.mapZoom);
