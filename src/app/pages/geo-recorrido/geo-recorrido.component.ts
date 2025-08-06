@@ -18,14 +18,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { GeoRecorrido } from '../../interfaces/geo-recorrido';
+import { debounceTime, distinctUntilChanged, forkJoin, map } from 'rxjs';
+
+// --- Servicios e Interfaces ---
 import { GeoRecorridoService } from '../../services/geo-recorrido/geo-recorrido.service';
+import { GeoRutasService } from '../../services/geo_rutas/geo-rutas.service';
 import {
   MapsComponent,
   MapRoute,
   MapMarker,
 } from '../../components/maps/maps.component';
+import { GeoRecorrido } from '../../interfaces/geo-recorrido';
+import { GeoRutas } from '../../interfaces/geo-rutas';
+import { ClienteGeolocalizado } from '../../interfaces/cliente-geolocalizado';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-geo-recorrido',
@@ -43,226 +49,206 @@ import {
     MatPaginatorModule,
     MatSortModule,
     MapsComponent,
+    MatProgressSpinnerModule,
   ],
   providers: [DatePipe],
   templateUrl: './geo-recorrido.component.html',
   styleUrls: ['./geo-recorrido.component.css'],
 })
 export class GeoRecorridoComponent implements OnInit, AfterViewInit {
+  private geoRutasService = inject(GeoRutasService);
   private recorridoService = inject(GeoRecorridoService);
   private snackBar = inject(MatSnackBar);
   private datePipe = inject(DatePipe);
 
-  filterControl = new FormControl('', { nonNullable: true });
-  displayedColumns: string[] = [
-    'idRecorrido',
+  // --- Estado del Componente ---
+  public filterControl = new FormControl('', { nonNullable: true });
+  // ===================== CORRECCIÓN AQUÍ =====================
+  public displayedColumns: string[] = [
     'idRuta',
-    'latitud',
-    'longitud',
+    'idUsuario',
+    'idUnidadTransporte',
     'fechaHora',
   ];
-  dataSource = new MatTableDataSource<GeoRecorrido>();
-  private todosLosRecorridos: GeoRecorrido[] = [];
-
-  @ViewChild('mapaRecorridos') private appMapComponent!: MapsComponent;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
-  // --- CAMBIO DE NOMBRE: De 'Recorrido' a 'Ruta' para reflejar la lógica ---
+  public dataSource = new MatTableDataSource<GeoRutas>();
   public selectedRutaId: number | null = null;
+  public mapaVisible = true;
+  public isLoadingData = false;
 
-  public mapaVisible = false;
+  // --- Datos para el Mapa ---
   public mapRoutes: MapRoute[] = [];
   public mapMarkers: MapMarker[] = [];
   public mapCenter: google.maps.LatLngLiteral = { lat: 20.9754, lng: -89.6169 };
   public mapZoom = 12;
 
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('mapaRecorridos') private appMapComponent!: MapsComponent;
+
   ngOnInit(): void {
-    this.loadRecorridos();
+    this.cargarRutasMaestras();
     this.filterControl.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
-      .subscribe((valorFiltro) => {
-        this.applyFilter(valorFiltro);
-      });
+      .subscribe((valorFiltro) => this.aplicarFiltro(valorFiltro));
   }
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-  }
-
-  loadRecorridos(): void {
-    this.recorridoService.getRecorridos().subscribe({
-      next: (data) => {
-        const recorridosConNumeros: GeoRecorrido[] = data.map((rec) => ({
-          ...rec,
-          latitud:
-            typeof rec.latitud === 'string'
-              ? parseFloat(rec.latitud)
-              : rec.latitud,
-          longitud:
-            typeof rec.longitud === 'string'
-              ? parseFloat(rec.longitud)
-              : rec.longitud,
-        }));
-        this.todosLosRecorridos = recorridosConNumeros;
-        this.applyFilter(''); // Carga inicial
-      },
-      error: (err) => this.showError('Error al cargar los registros.'),
-    });
-  }
-
-  applyFilter(filterValue: string): void {
-    this.selectedRutaId = null; // Limpia la selección de RUTA
-    const normalizedFilter = filterValue.trim().toLowerCase();
-
-    const filteredData = this.todosLosRecorridos.filter((recorrido) => {
-      const formattedDate =
-        this.datePipe.transform(recorrido.fechaHora, 'dd/MM/yyyy') || '';
+    this.dataSource.filterPredicate = (
+      data: GeoRutas,
+      filter: string
+    ): boolean => {
+      // ===================== CORRECCIÓN AQUÍ =====================
       const dataStr = (
-        recorrido.idRecorrido.toString() +
-        recorrido.idRuta.toString() +
-        formattedDate
+        data.idRuta.toString() +
+        data.idUsuario.toString() +
+        data.idUnidadTransporte.toString() +
+        this.datePipe.transform(data.fechaHora, 'fullDate')
       ).toLowerCase();
-      return dataStr.includes(normalizedFilter);
+      return dataStr.includes(filter);
+    };
+  }
+
+  cargarRutasMaestras(): void {
+    this.geoRutasService.getRutas().subscribe({
+      next: (rutas) => {
+        this.dataSource.data = rutas;
+      },
+      error: () =>
+        this.mostrarNotificacion('Error al cargar la lista de rutas.', 'error'),
     });
-
-    this.dataSource.data = filteredData;
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
-    this.actualizarDatosDelMapa(); // Actualiza el mapa con los datos filtrados de la tabla
   }
 
-  clearFilter(): void {
+  aplicarFiltro(valor: string): void {
+    this.dataSource.filter = valor.trim().toLowerCase();
+    if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+  }
+
+  limpiarFiltro(): void {
     this.filterControl.setValue('');
-  }
-
-  // --- CAMBIO DE NOMBRE Y LÓGICA: Ahora seleccionamos una RUTA completa ---
-  seleccionarRuta(recorridoSeleccionado: GeoRecorrido): void {
-    if (this.selectedRutaId === recorridoSeleccionado.idRuta) {
-      this.selectedRutaId = null; // Permite deseleccionar si se hace clic en la misma ruta
-    } else {
-      this.selectedRutaId = recorridoSeleccionado.idRuta;
-    }
-    this.actualizarDatosDelMapa(); // Redibuja el mapa para resaltar la nueva selección
-    this.enfocarMapaInteligentemente();
-    if (!this.mapaVisible) {
-      this.toggleMapa();
-    }
   }
 
   toggleMapa(): void {
     this.mapaVisible = !this.mapaVisible;
     if (this.mapaVisible) {
-      setTimeout(() => {
-        const googleMapInstance = this.appMapComponent?.map?.googleMap;
-        if (googleMapInstance) {
-          google.maps.event.trigger(googleMapInstance, 'resize');
-          this.enfocarMapaInteligentemente();
-        }
-      }, 100);
+      setTimeout(() => this.redibujarYCentrarMapa(), 100);
     }
   }
 
-  private enfocarMapaInteligentemente(): void {
-    const googleMap = this.appMapComponent?.map;
-    if (!googleMap) return;
+  seleccionarRuta(ruta: GeoRutas): void {
+    if (this.isLoadingData) return;
 
-    // Decide si enfocar una ruta específica o todas las visibles
-    const puntosAEnfocar = this.selectedRutaId
-      ? this.todosLosRecorridos.filter((p) => p.idRuta === this.selectedRutaId)
-      : this.dataSource.data;
-
-    if (puntosAEnfocar.length === 0) return;
-
-    const bounds = new google.maps.LatLngBounds();
-    puntosAEnfocar.forEach((punto) =>
-      bounds.extend({ lat: punto.latitud, lng: punto.longitud })
-    );
-    if (!bounds.isEmpty()) {
-      googleMap.fitBounds(bounds, 50);
-    }
-  }
-
-  // --- CAMBIO RADICAL EN LA LÓGICA DE AGRUPACIÓN ---
-  private actualizarDatosDelMapa(): void {
-    // Los datos a dibujar son siempre los que están visibles en la tabla
-    const recorridosVisibles = this.dataSource.data;
-    if (!recorridosVisibles) {
+    if (this.selectedRutaId === ruta.idRuta) {
+      this.selectedRutaId = null;
       this.mapRoutes = [];
       this.mapMarkers = [];
       return;
     }
 
-    // 1. Agrupar por idRuta
-    const rutasAgrupadas = recorridosVisibles.reduce((acc, punto) => {
-      (acc[punto.idRuta] = acc[punto.idRuta] || []).push(punto);
-      return acc;
-    }, {} as { [key: number]: GeoRecorrido[] });
+    this.isLoadingData = true;
+    this.selectedRutaId = ruta.idRuta;
+    this.mapRoutes = [];
+    this.mapMarkers = [];
 
-    // 2. Crear las polilíneas
-    const nuevasRutas: MapRoute[] = Object.entries(rutasAgrupadas).map(
-      ([idRuta, puntosDeLaRuta]) => {
-        const idRutaNum = Number(idRuta);
-        const esSeleccionada = this.selectedRutaId === idRutaNum;
-
-        return {
-          idRecorrido: idRutaNum, // Usamos el id de ruta para el tracking
-          path: puntosDeLaRuta
-            .sort(
-              (a, b) =>
-                new Date(a.fechaHora).getTime() -
-                new Date(b.fechaHora).getTime()
-            )
-            .map((p) => ({ lat: p.latitud, lng: p.longitud })),
-          options: {
-            strokeColor: esSeleccionada ? '#FF0000' : '#1E90FF',
-            strokeOpacity: esSeleccionada ? 1.0 : 0.7,
-            strokeWeight: esSeleccionada ? 8 : 4,
-            zIndex: esSeleccionada ? 999 : 1,
-          },
-        };
-      }
-    );
-    this.mapRoutes = nuevasRutas;
-
-    // 3. Crear los marcadores solo para la ruta seleccionada
-    const nuevosMarcadores: MapMarker[] = [];
-    if (this.selectedRutaId) {
-      const rutaSeleccionada = this.mapRoutes.find(
-        (r) => r.idRecorrido === this.selectedRutaId
-      );
-      if (rutaSeleccionada?.path.length) {
-        nuevosMarcadores.push({
-          position: rutaSeleccionada.path[0],
-          options: {
-            label: { text: 'I', color: 'white' },
-            icon: {
-              url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-            },
-          },
-        });
-        if (rutaSeleccionada.path.length > 1) {
-          nuevosMarcadores.push({
-            position: rutaSeleccionada.path[rutaSeleccionada.path.length - 1],
-            options: {
-              label: { text: 'F', color: 'white' },
-              icon: {
-                url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-              },
-            },
-          });
+    forkJoin({
+      recorrido: this.recorridoService
+        .getRecorridos()
+        .pipe(
+          map((recorridos) =>
+            recorridos.filter((r) => r.idRuta === ruta.idRuta)
+          )
+        ),
+      clientes: this.geoRutasService.getClientesGeolocalizados(ruta.idRuta),
+    }).subscribe({
+      next: ({ recorrido, clientes }) => {
+        this.procesarDatosParaMapa(recorrido, clientes);
+        if (!this.mapaVisible) {
+          this.toggleMapa();
+        } else {
+          this.redibujarYCentrarMapa();
         }
-      }
-    }
-    this.mapMarkers = nuevosMarcadores;
+        this.isLoadingData = false;
+      },
+      error: () => {
+        this.mostrarNotificacion(
+          'Error al cargar los datos del recorrido.',
+          'error'
+        );
+        this.isLoadingData = false;
+      },
+    });
   }
 
-  private showError(message: string): void {
-    this.snackBar.open(message, 'Cerrar', {
-      duration: 3000,
-      panelClass: ['snackbar-error'],
+  private procesarDatosParaMapa(
+    recorrido: GeoRecorrido[],
+    clientes: ClienteGeolocalizado[]
+  ): void {
+    const puntosRecorrido = recorrido
+      .sort(
+        (a, b) =>
+          new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime()
+      )
+      .map((p) => ({ lat: Number(p.latitud), lng: Number(p.longitud) }));
+
+    this.mapRoutes = [
+      {
+        idRecorrido: this.selectedRutaId!,
+        path: puntosRecorrido,
+        options: {
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.7,
+          strokeWeight: 5,
+          zIndex: 2,
+        },
+      },
+    ];
+
+    this.mapMarkers = clientes.map((cliente) => ({
+      position: {
+        lat: parseFloat(cliente.latitud),
+        lng: parseFloat(cliente.longitud),
+      },
+      options: {
+        title: `${cliente.nombreComercio}\n${cliente.direccion}`,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#1E90FF',
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: '#FFFFFF',
+        },
+      },
+    }));
+  }
+
+  private redibujarYCentrarMapa(): void {
+    const mapaGoogle = this.appMapComponent?.map?.googleMap;
+    if (!mapaGoogle) return;
+
+    google.maps.event.trigger(mapaGoogle, 'resize');
+
+    const bounds = new google.maps.LatLngBounds();
+    this.mapRoutes.forEach((r) => r.path.forEach((p) => bounds.extend(p)));
+    this.mapMarkers.forEach((m) => bounds.extend(m.position));
+
+    if (!bounds.isEmpty()) {
+      mapaGoogle.fitBounds(bounds, 60);
+    } else {
+      mapaGoogle.setCenter(this.mapCenter);
+      mapaGoogle.setZoom(this.mapZoom);
+    }
+  }
+
+  private mostrarNotificacion(
+    mensaje: string,
+    tipo: 'exito' | 'error' | 'advertencia'
+  ) {
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 5000,
+      panelClass: [`snackbar-${tipo}`],
+      verticalPosition: 'top',
     });
   }
 }

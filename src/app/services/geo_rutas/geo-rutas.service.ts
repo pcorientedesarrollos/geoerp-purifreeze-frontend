@@ -66,9 +66,6 @@
 //   }
 // }
 
-
-
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -76,6 +73,7 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../../enviroments/enviroments';
 // Asegúrate de importar AMBAS interfaces desde el archivo correcto
 import { GeoRutas, CreateGeoRutaPayload } from '../../interfaces/geo-rutas';
+import { ClienteGeolocalizado } from '../../interfaces/cliente-geolocalizado';
 
 @Injectable({
   providedIn: 'root',
@@ -91,7 +89,6 @@ export class GeoRutasService {
       .pipe(catchError(this.handleError));
   }
 
-  
   getRutas(): Observable<GeoRutas[]> {
     return this.http
       .get<GeoRutas[]>(this.API_URI)
@@ -103,7 +100,7 @@ export class GeoRutasService {
       .get<GeoRutas>(`${this.API_URI}/${id}`)
       .pipe(catchError(this.handleError));
   }
-  
+
   updateRuta(id: number, ruta: Partial<GeoRutas>): Observable<GeoRutas> {
     return this.http
       .patch<GeoRutas>(`${this.API_URI}/${id}`, ruta)
@@ -116,6 +113,16 @@ export class GeoRutasService {
       .pipe(catchError(this.handleError));
   }
 
+  getClientesGeolocalizados(
+    idRuta: number
+  ): Observable<ClienteGeolocalizado[]> {
+    return this.http
+      .get<ClienteGeolocalizado[]>(
+        `${this.API_URI}/${idRuta}/clientes-geolocalizados`
+      )
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse) {
     if (error.status === 0) {
       console.error('Ocurrió un error de red o del cliente:', error.error);
@@ -125,6 +132,11 @@ export class GeoRutasService {
           `el cuerpo del error fue: ${JSON.stringify(error.error)}`
       );
     }
-    return throwError(() => new Error('Algo malo ha sucedido; por favor, inténtelo de nuevo más tarde.'));
+    return throwError(
+      () =>
+        new Error(
+          'Algo malo ha sucedido; por favor, inténtelo de nuevo más tarde.'
+        )
+    );
   }
 }
