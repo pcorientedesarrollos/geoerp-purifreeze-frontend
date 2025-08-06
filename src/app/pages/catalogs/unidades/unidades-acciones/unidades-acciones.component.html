@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>
+  <mat-icon>{{ isEditMode ? 'edit' : 'add_circle' }}</mat-icon>
+  <span>{{ isEditMode ? 'Editar Unidad' : 'Nueva Unidad' }}</span>
+</h2>
+
+<mat-dialog-content class="mat-typography" [formGroup]="form">
+  <div *ngIf="isSaving" class="saving-overlay">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+  </div>
+  
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre de la Unidad</mat-label>
+      <input matInput formControlName="nombreUnidad" required>
+      <mat-error *ngIf="form.get('nombreUnidad')?.hasError('required')">El nombre es requerido.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Placa</mat-label>
+      <input matInput formControlName="placaUnidad" required>
+      <mat-error *ngIf="form.get('placaUnidad')?.hasError('required')">La placa es requerida.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Marca</mat-label>
+      <input matInput formControlName="marcaUnidad" required>
+      <mat-error *ngIf="form.get('marcaUnidad')?.hasError('required')">La marca es requerida.</mat-error>
+    </mat-form-field>
+    
+    <mat-form-field appearance="outline">
+      <mat-label>Modelo</mat-label>
+      <input matInput formControlName="modeloUnidad" required>
+      <mat-error *ngIf="form.get('modeloUnidad')?.hasError('required')">El modelo es requerido.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>NIV (Número de Identificación)</mat-label>
+      <input matInput formControlName="nivUnidad" required>
+      <mat-error *ngIf="form.get('nivUnidad')?.hasError('required')">El NIV es requerido.</mat-error>
+    </mat-form-field>
+
+    <mat-slide-toggle formControlName="unidadActiva" color="primary" class="full-width">
+      Unidad Activa
+    </mat-slide-toggle>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()" [disabled]="isSaving">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving">
+    <mat-icon>{{ isSaving ? 'sync' : (isEditMode ? 'save' : 'add') }}</mat-icon>
+    <span>{{ isSaving ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar') }}</span>
+  </button>
+</mat-dialog-actions>

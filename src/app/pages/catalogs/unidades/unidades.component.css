@@ -1,0 +1,243 @@
+/*
+================================================
+ESTILOS GENERALES Y DE LA TARJETA PRINCIPAL
+================================================
+*/
+.page-card {
+  max-width: 1200px;
+  margin: 24px auto;
+  background-color: #2c2c2c;
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Roboto', sans-serif;
+}
+
+/*
+================================================
+ENCABEZADO DE LA PÁGINA (TÍTULO Y BOTONES)
+================================================
+*/
+.page-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.page-header mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/*
+================================================
+CONTENIDO DE LA TARJETA (FILTRO Y TABLA)
+================================================
+*/
+mat-card-content {
+  padding: 24px;
+}
+
+.filter-field {
+  width: 100%;
+  max-width: 400px; /* Ancho máximo para el filtro */
+  margin-bottom: 24px;
+}
+
+.table-container {
+  overflow: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #2c2c2c;
+}
+
+table {
+  width: 100%;
+  background-color: transparent;
+}
+
+tr.mat-mdc-header-row {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+th.mat-mdc-header-cell {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  padding: 12px 16px;
+}
+
+tr.mat-mdc-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+mat-paginator {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/*
+================================================
+ESTADOS (CARGA, ERROR Y SIN DATOS)
+================================================
+*/
+.loading-container,
+.no-data-message,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.7);
+  min-height: 200px;
+  text-align: center;
+}
+
+.loading-container p,
+.no-data-message p,
+.error-container p {
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+.no-data-message mat-icon,
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/*
+================================================
+ESTILOS GLOBALES PARA LA VENTANA MODAL (MAT-DIALOG)
+Usamos :host ::ng-deep para aplicar estilos a un componente hijo (el diálogo)
+================================================
+*/
+:host ::ng-deep .mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #303030; /* Color de fondo del diálogo */
+  border-radius: 8px !important;
+  padding: 0 !important; /* Quitamos padding para controlar todo desde adentro */
+}
+
+/* Estilos para el título del diálogo */
+:host ::ng-deep h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Estilos para el contenido del diálogo */
+:host ::ng-deep mat-dialog-content.mat-typography {
+  padding: 24px !important;
+  color: rgba(255, 255, 255, 0.87);
+  position: relative;
+}
+
+/* Estilos para las acciones (botones) del diálogo */
+:host ::ng-deep mat-dialog-actions {
+  padding: 12px 24px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #303030;
+  display: flex;
+  justify-content: flex-end; /* Alinea los botones a la derecha */
+}
+
+:host ::ng-deep mat-dialog-actions button[mat-stroked-button] {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/*
+================================================
+ESTILOS PARA LOS CAMPOS DE FORMULARIO EN TEMA OSCURO
+================================================
+*/
+:host ::ng-deep .mat-mdc-form-field {
+  --mdc-text-field-outlined-label-color: rgba(255, 255, 255, 0.6);
+  --mat-mdc-form-field-error-message-color: #f44336;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-notched-outline * {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+:host ::ng-deep .mat-mdc-form-field input,
+:host ::ng-deep .mat-mdc-form-field mat-label,
+:host ::ng-deep .mat-mdc-form-field mat-icon,
+:host ::ng-deep .mat-mdc-select-value {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+:host ::ng-deep .mat-mdc-slide-toggle .mdc-label {
+    color: rgba(255, 255, 255, 0.87);
+}
+
+/*
+================================================
+DISEÑO RESPONSIVO
+================================================
+*/
+@media (max-width: 768px) {
+  .page-header {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .spacer {
+    display: none;
+  }
+  .page-header h1 {
+    font-size: 20px;
+  }
+  .header-actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .filter-field {
+    max-width: 100%;
+  }
+}

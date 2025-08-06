@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { ClientesComponent } from './clientes/clientes.component';
+import { UnidadesComponent } from './unidades/unidades.component';
 
 export const catalogosRoutes: Routes = [
 
@@ -7,5 +8,8 @@ export const catalogosRoutes: Routes = [
     path: 'clientes',
     component: ClientesComponent,
   },
-    // Aquí puedes añadir más rutas relacionadas con los catálogos
+    {
+    path: 'unidades',
+    component: UnidadesComponent,
+  },
 ];

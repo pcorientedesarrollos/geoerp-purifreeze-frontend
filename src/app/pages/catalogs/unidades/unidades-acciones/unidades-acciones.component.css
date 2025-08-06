@@ -1,0 +1,50 @@
+/*
+================================================
+ESTILOS DEL FORMULARIO INTERNO DEL DIÁLOGO
+================================================
+*/
+
+/* Contenedor del formulario con diseño de rejilla (grid) */
+.form-grid {
+  display: grid;
+  /* Crea 2 columnas, pero en pantallas pequeñas pasa a 1 */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Clase para hacer que un elemento ocupe todo el ancho de la rejilla */
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Estilos para el interruptor (slide-toggle) */
+.mat-mdc-slide-toggle {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* Capa de superposición para cuando se está guardando */
+.saving-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(48, 48, 48, 0.8); /* Fondo oscuro semitransparente */
+  z-index: 10; /* Se asegura que esté por encima del formulario */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+/* Alinear íconos y texto en los botones de acción */
+mat-dialog-actions button mat-icon,
+mat-dialog-actions button span {
+  vertical-align: middle;
+  display: inline-block;
+}
+
+mat-dialog-actions button mat-icon {
+  margin-right: 6px;
+}

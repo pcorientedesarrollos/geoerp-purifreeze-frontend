@@ -2,9 +2,7 @@
 
     idUnidadTransporte: number;
     idTipoUnidad: number;
-
     nombreUnidad: string;
-    
     placaUnidad: string;
     nivUnidad: string;
     marcaUnidad: string;
