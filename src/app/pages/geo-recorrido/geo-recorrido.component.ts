@@ -31,7 +31,7 @@ import {
   MapMarker,
 } from '../../components/maps/maps.component';
 import { GeoRecorrido } from '../../interfaces/geo-recorrido';
-import { GeoRutas } from '../../interfaces/geo-rutas';
+import { GeoRutas, RutaStatus } from '../../interfaces/geo-rutas';
 import { ClienteGeolocalizado } from '../../interfaces/cliente-geolocalizado';
 
 @Component({
@@ -92,7 +92,35 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
 
   // (ngOnInit, ngAfterViewInit, cargarRutasMaestras, etc. permanecen igual)
   // ...
+  getSpanishStatus(status: RutaStatus): string {
+    switch (status) {
+      case RutaStatus.PLANEADA:
+        return 'Planeada';
+      case RutaStatus.EN_CURSO:
+        return 'En Curso';
+      case RutaStatus.FINALIZADA:
+        return 'Finalizada';
+      case RutaStatus.CANCELADA:
+        return 'Cancelada';
+      default:
+        return 'Desconocido';
+    }
+  }
 
+  getIconForStatus(status: RutaStatus): string {
+    switch (status) {
+      case RutaStatus.PLANEADA:
+        return 'event';
+      case RutaStatus.EN_CURSO:
+        return 'local_shipping';
+      case RutaStatus.FINALIZADA:
+        return 'check_circle';
+      case RutaStatus.CANCELADA:
+        return 'cancel';
+      default:
+        return 'help_outline';
+    }
+  }
   seleccionarRuta(ruta: GeoRutas): void {
     if (this.isLoadingData) return;
 

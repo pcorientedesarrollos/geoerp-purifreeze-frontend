@@ -75,6 +75,21 @@
             <td mat-cell *matCellDef="let ruta">{{ ruta.idRuta }}</td>
           </ng-container>
 
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+            <td mat-cell *matCellDef="let ruta">
+              <span
+                class="status-chip"
+                [ngClass]="'status-' + ruta.status.toLowerCase()"
+              >
+                <mat-icon class="status-icon">{{
+                  getIconForStatus(ruta.status)
+                }}</mat-icon>
+                {{ getSpanishStatus(ruta.status) }}
+              </span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="idUsuario">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               ID Operador
@@ -107,6 +122,7 @@
             (click)="seleccionarRuta(row)"
             class="clickable-row"
             [class.selected-row]="row.idRuta === selectedRutaId"
+            [ngClass]="'row-status-' + row.status.toLowerCase()"
           ></tr>
 
           <tr class="mat-row" *matNoDataRow>
