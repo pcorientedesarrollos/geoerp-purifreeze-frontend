@@ -1,63 +1,120 @@
-/* Contenedor principal para alinear elementos */
-.clientes-container {
-  padding: 24px;
-  background-color: #1e1e1e; /* Fondo oscuro similar al de tu app */
-  color: #ffffff;
+/* Contenido para reemplazar completamente el archivo existente */
+.page-card {
+  max-width: 1400px;
+  margin: 24px auto;
+  background-color: #2c2c2c;
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
 }
 
-/* Encabezado con título y botón de agregar */
-.header {
+.page-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.page-title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
 }
 
-h1 {
+.page-title h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 22px;
   font-weight: 500;
 }
 
-/* Botón flotante para 'Agregar' */
-button[mat-fab] {
-  background-color: #3f51b5; /* Color azul primario de tu UI */
+.spacer {
+  flex: 1 1 auto;
 }
 
-/* Contenedor de la tabla para darle sombra y bordes redondeados */
-.table-responsive {
-  border-radius: 8px;
-  overflow: hidden; /* Asegura que los bordes de la tabla se redondeen */
+mat-card-content {
+  padding: 24px;
 }
 
-/* Estilo para que la tabla ocupe todo el ancho */
-.full-width-table {
+.filter-field {
   width: 100%;
-  background-color: #2c2c2c; /* Un gris un poco más claro para la tabla */
+  max-width: 450px;
+  margin-bottom: 24px;
 }
 
-/* Estilo para las celdas del encabezado */
-.mat-mdc-header-cell {
-  background-color: #333333;
-  color: #ffffff;
-  font-weight: bold;
-  font-size: 14px;
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-container p {
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+.table-container {
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+}
+
+tr.mat-mdc-header-row {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+th.mat-mdc-header-cell {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+tr.element-row {
+  cursor: pointer;
+}
+
+tr.element-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.detail-row {
+  height: 0;
+}
+
+.element-detail {
+  overflow: hidden;
+  background-color: #212121; /* Un poco más oscuro para diferenciar */
+}
+
+.detail-content {
   padding: 16px;
 }
 
-/* Estilo para las celdas de datos */
-.mat-mdc-cell {
-  color: #e0e0e0;
-  padding: 16px;
-  border-bottom-color: #424242; /* Líneas de separación sutiles */
+.detail-loading {
+  display: flex;
+  padding: 48px;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Quitar el borde de la última fila */
-.mat-mdc-row:last-child .mat-mdc-cell {
-  border-bottom: none;
+mat-paginator {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-/* Alinear los botones de acción */
-.mat-mdc-cell .mat-icon-button {
-  margin-right: 8px;
+
+/* ===== CORRECCIÓN DE COLOR PARA CELDAS Y ENCABEZADOS ===== */
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  color: rgb(243, 240, 240); /* Color para las celdas de datos */
+  border-bottom-color: rgba(255, 255, 255, 0.12);
 }
+
+th.mat-mdc-header-cell {
+  color: rgba(245, 236, 236, 0.95); /* Color más brillante para los títulos de columna */
+  font-weight: 500;
+} 

@@ -1,55 +1,73 @@
-<div class="table-container">
-  <div class="table-header">
-    <h2>Listado de Direcciones de Clientes</h2>
-    <button mat-flat-button color="primary" (click)="agregarCliente()">
-      <mat-icon>add</mat-icon>
-      Añadir Dirección
-    </button>
-  </div>
+<!-- Contenido para reemplazar completamente el archivo existente -->
+<mat-card class="page-card">
+  <mat-card-header class="page-header">
+    <div class="page-title">
+      <mat-icon>groups</mat-icon>
+      <h1>Catálogo de Clientes</h1>
+    </div>
+    <div class="spacer"></div>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" (click)="agregarCliente()">
+        <mat-icon>add</mat-icon>
+        <span>Añadir Dirección</span>
+      </button>
+    </div>
+  </mat-card-header>
 
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  <mat-card-content>
+    <div *ngIf="!isLoading">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filtrar clientes...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Buscar por nombre, razón social, etc.">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
 
-    <!-- ========================================================== -->
-    <!-- ESTE ES EL BLOQUE QUE FALTABA Y SOLUCIONA EL ERROR -->
-    <ng-container matColumnDef="nombreComercio">
-      <th mat-header-cell *matHeaderCellDef> Nombre Comercio </th>
-      <td mat-cell *matCellDef="let element"> {{element.nombreComercio || 'N/A'}} </td>
-    </ng-container>
-    <!-- ========================================================== -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p>Cargando clientes...</p>
+    </div>
+    
+    <div class="table-container" [hidden]="isLoading">
+      <table mat-table [dataSource]="dataSource" multiTemplateDataRows matSort>
+        <!-- Columna Expandir -->
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-icon-button (click)="$event.stopPropagation(); toggleRow(element)"><mat-icon>{{expandedElement === element ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon></button>
+          </td>
+        </ng-container>
 
-    <!-- Columna Razón Social -->
-    <ng-container matColumnDef="razon_social">
-      <th mat-header-cell *matHeaderCellDef> Razón Social </th>
-      <td mat-cell *matCellDef="let element"> {{element.razon_social}} </td>
-    </ng-container>
+        <!-- Columnas Principales (con mat-sort-header) -->
+        <ng-container matColumnDef="nombreComercio"><th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Comercio </th><td mat-cell *matCellDef="let e"> {{e.nombreComercio}} </td></ng-container>
+        <ng-container matColumnDef="razon_social"><th mat-header-cell *matHeaderCellDef mat-sort-header> Razón Social </th><td mat-cell *matCellDef="let e"> {{e.razon_social}} </td></ng-container>
+        <ng-container matColumnDef="direccion"><th mat-header-cell *matHeaderCellDef> Dirección Fiscal </th><td mat-cell *matCellDef="let e"> {{e.direccion}} </td></ng-container>
+        <ng-container matColumnDef="nombreSucursal"><th mat-header-cell *matHeaderCellDef mat-sort-header> Sucursal </th><td mat-cell *matCellDef="let e"> {{e.nombreSucursal}} </td></ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-icon-button (click)="editarCliente(element)"><mat-icon>edit</mat-icon></button>
+          </td>
+        </ng-container>
+        
+        <!-- Fila de Detalle Expandido (Usa el componente de detalle) -->
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
+            <div class="element-detail" [@detailExpand]="element === expandedElement ? 'expanded' : 'collapsed'">
+              <div *ngIf="element.serviciosLoading" class="detail-loading"><mat-spinner diameter="40"></mat-spinner></div>
+              <div *ngIf="!element.serviciosLoading && element.servicios" class="detail-content">
+                <app-detalle-cliente [servicios]="element.servicios"></app-detalle-cliente>
+              </div>
+            </div>
+          </td>
+        </ng-container>
 
-    <!-- Columna Dirección -->
-    <ng-container matColumnDef="direccion">
-      <th mat-header-cell *matHeaderCellDef> Dirección Fiscal </th>
-      <td mat-cell *matCellDef="let element"> {{element.direccion}} </td>
-    </ng-container>
-
-    <!-- Columna Nombre Sucursal -->
-    <ng-container matColumnDef="nombreSucursal">
-      <th mat-header-cell *matHeaderCellDef> Sucursal </th>
-      <td mat-cell *matCellDef="let element"> {{element.nombreSucursal}} </td>
-    </ng-container>
-
-    <!-- Columna Acciones -->
-    <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> Acciones </th>
-      <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="primary" (click)="editarCliente(element)" aria-label="Editar cliente">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button color="warn" (click)="eliminarCliente(element)" aria-label="Eliminar cliente">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
-
-</div>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="element-row" (click)="toggleRow(row)"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+        <tr class="mat-row" *matNoDataRow><td class="mat-cell" colspan="6">No se encontraron datos para el filtro "{{dataSource.filter}}"</td></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card-content>
+</mat-card>
