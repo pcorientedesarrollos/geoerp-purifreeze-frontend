@@ -11,6 +11,8 @@
 
 .page-header {
   padding: 16px 24px;
+  display: flex; /* Asegura el layout flex */
+  align-items: center; /* Centra verticalmente */
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -68,11 +70,6 @@ tr.mat-mdc-header-row {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-th.mat-mdc-header-cell {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 500;
-}
-
 tr.element-row {
   cursor: pointer;
 }
@@ -83,6 +80,7 @@ tr.element-row:hover {
 
 .detail-row {
   height: 0;
+  border: none;
 }
 
 .element-detail {
@@ -106,15 +104,13 @@ mat-paginator {
   color: rgba(255, 255, 255, 0.7);
 }
 
-
-/* ===== CORRECCIÓN DE COLOR PARA CELDAS Y ENCABEZADOS ===== */
 th.mat-mdc-header-cell,
 td.mat-mdc-cell {
-  color: rgb(243, 240, 240); /* Color para las celdas de datos */
+  color: rgba(255, 255, 255, 0.87);
   border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 
 th.mat-mdc-header-cell {
-  color: rgba(245, 236, 236, 0.95); /* Color más brillante para los títulos de columna */
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
-} 
+}

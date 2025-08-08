@@ -1,12 +1,8 @@
-/* Contenido para reemplazar completamente el archivo existente */
 :host {
   display: block;
   width: 100%;
 }
 
-/* ================================================
-   ESTILOS GENERALES DE LA TARJETA
-   ================================================ */
 .historial-card {
   background-color: #2c2c2c;
   color: rgba(255, 255, 255, 0.87);
@@ -14,20 +10,16 @@
   overflow: hidden;
   font-family: 'Roboto', sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  /* Sombra sutil para darle profundidad */
   box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
 }
 
-/* ================================================
-   ENCABEZADO (TÍTULO Y FILTRO)
-   ================================================ */
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  flex-wrap: wrap; /* Para que se ajuste en pantallas pequeñas */
+  flex-wrap: wrap;
   gap: 16px;
 }
 
@@ -48,11 +40,8 @@
   max-width: 350px;
 }
 
-/* ================================================
-   TABLA
-   ================================================ */
 .table-container {
-  overflow: auto; /* Scroll horizontal si es necesario */
+  overflow: auto;
 }
 
 table {
@@ -64,18 +53,18 @@ tr.mat-mdc-header-row {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-th.mat-mdc-header-cell {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 500;
-}
-
 th.mat-mdc-header-cell,
 td.mat-mdc-cell {
   color: rgba(255, 255, 255, 0.87);
   border-bottom-color: rgba(255, 255, 255, 0.12);
   padding: 12px 16px;
-  white-space: normal; /* Permite que el texto largo se divida en varias líneas */
+  white-space: normal;
   word-wrap: break-word;
+}
+
+th.mat-mdc-header-cell {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
 }
 
 tr.mat-mdc-row:hover {
@@ -88,25 +77,21 @@ tr.mat-mdc-row:hover {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* ================================================
-   PAGINADOR Y CAMPO DE FILTRO (TEMA OSCURO)
-   ================================================ */
 mat-paginator {
   background-color: transparent;
   color: rgba(255, 255, 255, 0.7);
 }
 
-.filter-field {
-  --mdc-text-field-outlined-label-color: rgba(255, 255, 255, 0.6);
-}
-.filter-field .mat-mdc-text-field-wrapper {
+:host ::ng-deep .filter-field .mat-mdc-text-field-wrapper {
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
-.filter-field .mdc-notched-outline * {
+
+:host ::ng-deep .filter-field .mdc-notched-outline * {
   border-color: rgba(255, 255, 255, 0.3) !important;
 }
-.filter-field input,
-.filter-field mat-label,
-.filter-field mat-icon {
+
+:host ::ng-deep .filter-field input,
+:host ::ng-deep .filter-field mat-label,
+:host ::ng-deep .filter-field mat-icon {
   color: rgba(255, 255, 255, 0.87) !important;
 }
