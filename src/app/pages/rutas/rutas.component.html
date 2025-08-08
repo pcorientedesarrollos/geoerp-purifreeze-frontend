@@ -27,7 +27,7 @@
         </mat-select>
         <mat-error *ngIf="rutaForm.get('idUnidadTransporte')?.hasError('required')">La unidad es requerida.</mat-error>
       </mat-form-field>
-      
+
       <mat-form-field appearance="outline">
         <mat-label>Kilometraje Inicial</mat-label>
         <input matInput type="number" formControlName="kmInicial" required>
@@ -39,16 +39,16 @@
 
     <!-- 2. Tabla de Servicios Disponibles -->
     <h3 class="section-title">2. Seleccionar Servicios para la Ruta</h3>
-    
+
     @if (isLoading) {
       <div class="loading-container">
         <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
         <p>Cargando servicios disponibles...</p>
       </div>
     } @else {
-      <mat-form-field appearance="outline" class="filter-field">
+      <mat-form-field appearance="outline">
         <mat-label>Buscar en servicios...</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ej: Cliente, equipo, tipo...">
+        <input matInput [formControl]="filterControl" placeholder="Ej: Cliente, equipo, tipo...">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
@@ -81,12 +81,12 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Equipo </th>
             <td mat-cell *matCellDef="let element"> {{element.nombreEquipo}} </td>
           </ng-container>
-          
+
           <ng-container matColumnDef="tipoServicio">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo de Servicio </th>
             <td mat-cell *matCellDef="let element"> {{element.tipoServicio}} </td>
           </ng-container>
-          
+
           <ng-container matColumnDef="fechaServicio">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Servicio </th>
             <td mat-cell *matCellDef="let element"> {{element.fechaServicio | date:'dd/MM/yyyy'}} </td>
@@ -94,7 +94,7 @@
 
           <tr mat-header-row *matHeaderRowDef="columnasTabla"></tr>
           <tr mat-row *matRowDef="let row; columns: columnasTabla;"></tr>
-          
+
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell" colspan="5">No se encontraron servicios que coincidan con el filtro.</td>
           </tr>

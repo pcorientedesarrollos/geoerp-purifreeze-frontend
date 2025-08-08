@@ -1,12 +1,9 @@
-
-
-
-
-// import { Component, OnInit, ViewChild, inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { forkJoin, switchMap } from 'rxjs';
+import { forkJoin, Subscription, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SelectionModel } from '@angular/cdk/collections';
 
 // Angular Material
@@ -31,12 +28,12 @@ import { GeoUsuariosService } from '../../services/geo_usuarios/geo-usuarios.ser
 import { GeoUnidadTransporte } from '../../interfaces/geo_unidad-transportes';
 import { GeoUsuario } from '../../interfaces/geo_usuarios';
 import { GeoRutaDetallePayload, ServicioDisponible } from '../../interfaces/geo-rutas-detalle';
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { GeoRutasDetalleService } from '../../services/geo_rutasDetalle/geo-rutas-detalles.service';
 import { CreateGeoRutaPayload } from '../../interfaces/geo-rutas';
 
 @Component({
   selector: 'app-rutas',
+  standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatSelectModule, MatCardModule,
@@ -46,7 +43,7 @@ import { CreateGeoRutaPayload } from '../../interfaces/geo-rutas';
   templateUrl: './rutas.component.html',
   styleUrls: ['./rutas.component.css'],
 })
-export class RutasComponent implements OnInit {
+export class RutasComponent implements OnInit, OnDestroy {
   // Inyección de dependencias
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
@@ -70,6 +67,9 @@ export class RutasComponent implements OnInit {
   selection = new SelectionModel<ServicioDisponible>(true, []);
   columnasTabla: string[] = ['select', 'nombreComercio', 'nombreEquipo', 'tipoServicio', 'fechaServicio'];
 
+  filterControl = new FormControl('');
+  private filterSubscription: Subscription;
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -79,10 +79,21 @@ export class RutasComponent implements OnInit {
       idUnidadTransporte: ['', Validators.required],
       kmInicial: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
     });
+
+    this.filterSubscription = this.filterControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      this.applyFilter(value || '');
+    });
   }
 
   ngOnInit(): void {
     this.cargarDatosIniciales();
+  }
+
+  ngOnDestroy(): void {
+    this.filterSubscription.unsubscribe();
   }
 
   cargarDatosIniciales(): void {
@@ -106,25 +117,30 @@ export class RutasComponent implements OnInit {
       },
     });
   }
-  
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
+
+  applyFilter(filterValue: string) {
     this.serviciosDisponibles.filter = filterValue.trim().toLowerCase();
     if (this.serviciosDisponibles.paginator) {
       this.serviciosDisponibles.paginator.firstPage();
     }
   }
 
-  isAllSelected() {
-    return this.selection.selected.length === this.serviciosDisponibles.data.length;
+  isAllSelected(): boolean {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.serviciosDisponibles.data.length;
+    return numSelected === numRows;
   }
 
-  toggleAllRows() {
-    this.isAllSelected() ? this.selection.clear() : this.selection.select(...this.serviciosDisponibles.data);
+  toggleAllRows(): void {
+    this.isAllSelected() ?
+      this.selection.clear() :
+      this.selection.select(...this.serviciosDisponibles.data);
   }
 
   checkboxLabel(row?: ServicioDisponible): string {
-    if (!row) return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
+    if (!row) {
+      return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
+    }
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.idServicioEquipo}`;
   }
 
@@ -139,8 +155,6 @@ export class RutasComponent implements OnInit {
     }
 
     this.isSaving = true;
-    
-    // CORRECCIÓN CLAVE: El tipo de 'payloadRuta' ahora es el correcto 'CreateGeoRutaPayload'
     const payloadRuta: CreateGeoRutaPayload = this.rutaForm.value;
 
     this.geoRutasService.createRuta(payloadRuta).pipe(
@@ -159,7 +173,6 @@ export class RutasComponent implements OnInit {
           nombreComercio: servicio.nombreComercio,
           status: 1, // Por defecto: 1 = Pendiente
         }));
-        
         const requests = detallesPayload.map(payload => this.geoRutasDetalleService.create(payload));
         return forkJoin(requests);
       })
@@ -167,7 +180,7 @@ export class RutasComponent implements OnInit {
       next: () => {
         this.isSaving = false;
         this.mostrarNotificacion('Ruta y servicios guardados con éxito.', 'exito');
-        this.router.navigate(['/rutas']); // O a donde deba redirigir
+        this.router.navigate(['/rutas']);
       },
       error: (err) => {
         this.isSaving = false;
@@ -181,10 +194,10 @@ export class RutasComponent implements OnInit {
     this.router.navigate(['/rutas']);
   }
 
-  private mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'advertencia') {
+  private mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'advertencia'): void {
     this.snackBar.open(mensaje, 'Cerrar', {
       duration: 4000,
-      panelClass: [`snackbar-${tipo}`],
+      panelClass: tipo === 'exito' ? 'snackbar-success' : `snackbar-${tipo}`,
       verticalPosition: 'top'
     });
   }
