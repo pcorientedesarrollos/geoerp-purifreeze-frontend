@@ -152,7 +152,7 @@ export class RutasComponent implements OnInit {
           nombreEquipo: servicio.nombreEquipo,
           fechaServicio: servicio.fechaServicio,
           hora: servicio.hora,
-          tipoServicio: servicio.tipo_servicio,
+          tipoServicio: servicio.tipoServicio,
           descripcion: servicio.descripcion ?? undefined,
           observacionesServicio: servicio.observaciones_servicio ?? undefined,
           idContrato: servicio.idContrato,
