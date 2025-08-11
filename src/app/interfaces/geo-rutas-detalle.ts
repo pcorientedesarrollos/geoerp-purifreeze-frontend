@@ -22,7 +22,7 @@ export interface ServicioDisponible {
   nombreEquipo: string;
   fechaServicio: string;
   hora: string;
-  tipo_servicio: string;
+  tipoServicio: string;
   descripcion: string;
   observaciones_servicio: string;
   idContrato: number;
