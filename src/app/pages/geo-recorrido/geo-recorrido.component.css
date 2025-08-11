@@ -165,3 +165,42 @@ table {
     0.25
   ) !important; /* Mantiene el color de selección */
 }
+.summary-card {
+  background-color: #3c3c3e;
+  border-left: 4px solid #4285f4;
+}
+
+.summary-content {
+  display: flex;
+  gap: 24px;
+  padding-top: 16px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-item mat-icon {
+  font-size: 36px;
+  height: 36px;
+  width: 36px;
+  color: #a4c2f4;
+}
+
+.summary-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffffff;
+}

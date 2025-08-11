@@ -12,8 +12,10 @@ export interface GeoRutas {
   idUsuario: number;
   idUnidadTransporte: number;
   fechaHora: Date | string;
-  kmInicial: string;
-  status: RutaStatus; // <--- AÑADIR ESTA LÍNEA
+  kmInicial?: string;
+  statusRuta: RutaStatus; // <--- AÑADIR ESTA LÍNEA
+  distanciaTotalKm?: number; // ¡NUEVO!
+  consumoEstimadoLitros?: number; // ¡NUEVO!
   detalles: any[]; // Asumiendo que `detalles` viene en la respuesta
 }
 
