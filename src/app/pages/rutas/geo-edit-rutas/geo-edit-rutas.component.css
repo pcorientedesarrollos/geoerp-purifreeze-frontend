@@ -1,0 +1,191 @@
+/* --- ESTILOS GENERALES Y HOST --- */
+:host {
+  display: block;
+  padding: 1rem;
+}
+
+/* --- TARJETA PRINCIPAL DEL FORMULARIO --- */
+.form-card {
+  max-width: 1200px;
+  margin: 24px auto;
+  background-color: #2c2c2c; /* Fondo oscuro principal */
+  color: rgba(255, 255, 255, 0.87); /* Texto claro por defecto */
+  padding: 24px;
+  border-radius: 8px;
+}
+
+/* --- Títulos y Divisores --- */
+.section-title {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8); /* Color de texto más suave */
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12); /* Borde sutil */
+}
+
+.section-divider {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  background-color: rgba(255, 255, 255, 0.12); /* Color del divisor */
+}
+
+/* --- SECCIÓN 1: DATOS GENERALES --- */
+.header-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 8px; /* Ajuste para alinear con los campos de Material */
+}
+
+/* --- ESTILOS GLOBALES PARA FORMULARIOS (Inputs, Selects) --- */
+mat-form-field {
+  width: 100%;
+}
+
+/* Sobreescritura de estilos de Material para tema oscuro */
+:host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 4px 4px 0 0;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-notched-outline * {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+:host ::ng-deep .mat-mdc-form-field:not(.mat-form-field-disabled) .mdc-floating-label {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+mat-form-field input,
+mat-form-field mat-select,
+mat-form-field mat-label {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+mat-icon {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:host ::ng-deep .mat-mdc-select-arrow {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* --- SECCIÓN 2: SERVICIOS ASIGNADOS --- */
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.table-container {
+  overflow: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: 16px;
+}
+
+table {
+  width: 100%;
+  background-color: #2c2c2c;
+}
+
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+th.mat-mdc-header-cell {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+tr.mat-mdc-row:hover, tr.mat-mdc-row.cdk-keyboard-focused {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Mensaje de "No hay datos" en la tabla */
+tr.mat-mdc-no-data-row {
+  background-color: #2c2c2c;
+}
+
+td.mat-mdc-cell.mat-mdc-no-data-row-cell {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 2rem;
+}
+
+/* Select de status dentro de la tabla */
+.status-select {
+  width: 180px;
+}
+.status-select .mat-form-field-wrapper {
+  padding-bottom: 0; /* Para que quepa bien en la celda */
+}
+
+/* Columna de Acciones */
+.actions-header, .actions-cell {
+  text-align: center;
+  width: 100px;
+}
+
+/* --- ESTADO DE CARGA --- */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.7);
+  min-height: 200px;
+}
+
+/* --- ACCIONES FINALES DEL FORMULARIO --- */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px 0 0 0;
+  margin-top: 24px;
+}
+
+/* Botones con estilo oscuro */
+.form-actions button[mat-stroked-button] {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.form-actions button[mat-stroked-button]:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.form-actions button[color="primary"] {
+  background-color: #5c6bc0; /* Un tono de azul que funciona bien en fondo oscuro */
+  color: #ffffff;
+}
+
+.form-actions button[color="accent"] {
+  background-color: #4db6ac;
+  color: #000000;
+}
+
+.form-actions button:disabled {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.3) !important; /* !important para sobreescribir Material */
+  border-color: transparent !important;
+}
+
+.form-actions mat-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: white;
+}

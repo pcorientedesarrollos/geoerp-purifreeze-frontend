@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 // Importamos los dos componentes que usaremos
 import { ListaRutasComponent } from './lista-rutas/lista-rutas.component';
 import { RutasComponent } from './rutas.component'; // Este es tu componente de Formulario
+import { GeoEditRutasComponent } from './geo-edit-rutas/geo-edit-rutas.component';
 
 export const RUTAS_ROUTES: Routes = [
   {
@@ -17,7 +18,7 @@ export const RUTAS_ROUTES: Routes = [
   },
   {
     path: 'editar/:id', // La ruta /rutas/editar/123 mostrará el formulario para editar la ruta 123
-    component: RutasComponent,
+    component: GeoEditRutasComponent,
     data: { title: 'Editar Ruta' },
   },
 ];
