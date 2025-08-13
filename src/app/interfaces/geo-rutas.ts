@@ -16,6 +16,14 @@ export interface GeoRutas {
   statusRuta: RutaStatus; // <--- AÑADIR ESTA LÍNEA
   distanciaTotalKm?: number; // ¡NUEVO!
   consumoEstimadoLitros?: number; // ¡NUEVO!
+  usuario: {
+    idUsuario: number;
+    usuario: string; // Este es el nombre que mostraremos
+  };
+  unidadTransporte: {
+    idUnidadTransporte: number;
+    nombreUnidad: string; // Este es el nombre que mostraremos
+  };
   detalles: any[]; // Asumiendo que `detalles` viene en la respuesta
 }
 
