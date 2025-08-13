@@ -66,6 +66,16 @@
           >
         </div>
       </div>
+
+      <div class="summary-item">
+        <mat-icon>timer</mat-icon>
+        <div class="summary-text">
+          <span class="summary-label">Duración del Viaje</span>
+          <span class="summary-value">{{
+            formatarDuracion(selectedRuta.duracionMinutos)
+          }}</span>
+        </div>
+      </div>
     </mat-card-content>
   </mat-card>
   }

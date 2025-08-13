@@ -397,6 +397,37 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // ¡NUEVO MÉTODO AYUDANTE!
+  /**
+   * Convierte una duración en minutos a un formato legible "Xh Ym".
+   * @param totalMinutes Duración total en minutos.
+   */
+  formatarDuracion(totalMinutes: number | null | undefined): string {
+    if (
+      totalMinutes === null ||
+      totalMinutes === undefined ||
+      totalMinutes < 0
+    ) {
+      return '--'; // Devuelve un valor por defecto si no hay datos
+    }
+    if (totalMinutes === 0) {
+      return '0m';
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    let result = '';
+    if (hours > 0) {
+      result += `${hours}h `;
+    }
+    if (minutes > 0) {
+      result += `${minutes}m`;
+    }
+
+    return result.trim();
+  }
+
   getSpanishStatus(status: RutaStatus): string {
     switch (status) {
       case RutaStatus.PLANEADA:

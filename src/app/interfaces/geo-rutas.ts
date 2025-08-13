@@ -13,9 +13,13 @@ export interface GeoRutas {
   idUnidadTransporte: number;
   fechaHora: Date | string;
   kmInicial?: string;
+  duracionMinutos?: number;
   statusRuta: RutaStatus; // <--- AÑADIR ESTA LÍNEA
+
   distanciaTotalKm?: number; // ¡NUEVO!
   consumoEstimadoLitros?: number; // ¡NUEVO!
+
+  detalles: any[];
   usuario: {
     idUsuario: number;
     usuario: string; // Este es el nombre que mostraremos
@@ -24,7 +28,8 @@ export interface GeoRutas {
     idUnidadTransporte: number;
     nombreUnidad: string; // Este es el nombre que mostraremos
   };
-  detalles: any[]; // Asumiendo que `detalles` viene en la respuesta
+
+  // Asumiendo que `detalles` viene en la respuesta
 }
 
 export interface CreateGeoRutaPayload {
