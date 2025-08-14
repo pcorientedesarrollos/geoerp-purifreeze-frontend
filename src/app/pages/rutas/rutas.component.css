@@ -94,10 +94,10 @@ tr.mat-mdc-row:hover {
 
 /* --- Estilos para los Checkbox en tema oscuro --- */
 :host ::ng-deep .mat-mdc-checkbox {
-  --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.7);
-  --mdc-checkbox-unselected-pressed-icon-color: rgba(255, 255, 255, 0.7);
-  --mdc-checkbox-unselected-focus-icon-color: rgba(255, 255, 255, 0.7);
-  --mdc-checkbox-unselected-hover-icon-color: rgba(255, 255, 255, 0.7);
+  --mat-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.7);
+  --mat-checkbox-unselected-pressed-icon-color: rgba(255, 255, 255, 0.7);
+  --mat-checkbox-unselected-focus-icon-color: rgba(255, 255, 255, 0.7);
+  --mat-checkbox-unselected-hover-icon-color: rgba(255, 255, 255, 0.7);
 }
 
 /* --- Paginador y mensajes de la tabla --- */
@@ -156,5 +156,5 @@ td.mat-cell[colspan="5"] {
 }
 
 .form-actions mat-progress-spinner {
-    --mdc-circular-progress-active-indicator-color: white;
+    --mat-progress-spinner-active-indicator-color: white;
 }

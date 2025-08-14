@@ -2,7 +2,8 @@
 @use "@angular/material" as mat;
 
 // Incluye los estilos base y la tipografía de Material.
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 // 1. Define la paleta de colores primaria usando el azul predefinido de Material.
 $my-primary-palette: mat.define-palette(

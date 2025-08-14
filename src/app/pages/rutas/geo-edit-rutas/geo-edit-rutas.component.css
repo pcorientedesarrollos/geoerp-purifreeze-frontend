@@ -187,5 +187,5 @@ td.mat-mdc-cell.mat-mdc-no-data-row-cell {
 }
 
 .form-actions mat-progress-spinner {
-    --mdc-circular-progress-active-indicator-color: white;
+    --mat-progress-spinner-active-indicator-color: white;
 }
