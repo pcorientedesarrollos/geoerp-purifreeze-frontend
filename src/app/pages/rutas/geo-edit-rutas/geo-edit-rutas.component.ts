@@ -1,5 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+
+
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, effect } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { forkJoin, lastValueFrom } from 'rxjs';
@@ -23,13 +25,19 @@ import { GeoRutasService } from '../../../services/geo_rutas/geo-rutas.service';
 import { GeoRutasDetalleService } from '../../../services/geo_rutasDetalle/geo-rutas-detalles.service';
 import { GeoUsuariosService } from '../../../services/geo_usuarios/geo-usuarios.service';
 import { GeoUnidadTransportesService } from '../../../services/geo_unidadTransportes/geo-unidad-transportes.service';
-import { GeoStatusService } from '../../../services/geo_status/geo-status.service'; // <--- 1. IMPORTAR EL NUEVO SERVICIO
+import { GeoStatusService } from '../../../services/geo_status/geo-status.service';
 import { GeoRutas } from '../../../interfaces/geo-rutas';
 import { GeoUsuario } from '../../../interfaces/geo_usuarios';
 import { GeoUnidadTransporte } from '../../../interfaces/geo_unidad-transportes';
 import { GeoRutasDetalle, GeoRutaDetallePayload, ServicioDisponible } from '../../../interfaces/geo-rutas-detalle';
-import { GeoStatus } from '../../../interfaces/geo_status'; // <--- IMPORTAR LA INTERFAZ DE STATUS
+import { GeoStatus } from '../../../interfaces/geo_status';
 import { AgregarServicioModalComponent } from './agregar-servicio-modal/agregar-servicio-modal.component';
+
+interface RutaFormControls {
+  idUsuario: FormControl<number | null>;
+  idUnidadTransporte: FormControl<number | null>;
+  kmInicial: FormControl<string | null>; 
+}
 
 @Component({
   selector: 'app-geo-edit-rutas',
@@ -41,40 +49,46 @@ import { AgregarServicioModalComponent } from './agregar-servicio-modal/agregar-
     MatTableModule, MatTooltipModule, MatDialogModule, DatePipe
   ],
   templateUrl: './geo-edit-rutas.component.html',
-  styleUrls: ['./geo-edit-rutas.component.css']
+  styleUrls: ['./geo-edit-rutas.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeoEditRutasComponent implements OnInit {
   // Inyección de dependencias
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private snackBar = inject(MatSnackBar);
+  // --- CORRECCIÓN: Se usa MatSnackBar en lugar de SnackBar ---
+  private snackBar = inject(MatSnackBar); 
   private dialog = inject(MatDialog);
   private geoRutasService = inject(GeoRutasService);
   private geoRutasDetalleService = inject(GeoRutasDetalleService);
   private geoUsuariosService = inject(GeoUsuariosService);
   private geoUnidadesService = inject(GeoUnidadTransportesService);
-  private geoStatusService = inject(GeoStatusService); // <--- 2. INYECTAR EL NUEVO SERVICIO
+  private geoStatusService = inject(GeoStatusService);
 
-  // Formularios y estado
-  rutaForm: FormGroup;
-  isLoading = true;
-  isSaving = false;
-  idRuta!: number;
-  rutaActual?: GeoRutas;
-
-  // Datos para UI
-  operadores: GeoUsuario[] = [];
-  unidades: GeoUnidadTransporte[] = [];
-  statusList: GeoStatus[] = []; // <--- 3. LISTA PARA ALMACENAR LOS ESTADOS DINÁMICOS
-  detallesDataSource = new MatTableDataSource<GeoRutasDetalle>();
-  displayedColumns: string[] = ['folioContrato', 'cliente', 'equipo', 'tipoServicio', 'fecha', 'status', 'acciones'];
+  // Estado con Signals
+  public isLoading = signal(true);
+  public isSaving = signal(false);
+  public rutaActual = signal<GeoRutas | undefined>(undefined);
+  public operadores = signal<GeoUsuario[]>([]);
+  public unidades = signal<GeoUnidadTransporte[]>([]);
+  public statusList = signal<GeoStatus[]>([]);
+  public rutaDetalles = signal<GeoRutasDetalle[]>([]);
+  
+  public idRuta!: number;
+  public rutaForm: FormGroup<RutaFormControls>;
+  public detallesDataSource = new MatTableDataSource<GeoRutasDetalle>();
+  public displayedColumns: string[] = ['folioContrato', 'cliente', 'equipo', 'tipoServicio', 'fecha', 'status', 'acciones'];
 
   constructor() {
-    this.rutaForm = this.fb.group({
-      idUsuario: ['', Validators.required],
-      idUnidadTransporte: ['', Validators.required],
-      kmInicial: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
+    this.rutaForm = new FormGroup<RutaFormControls>({
+      idUsuario: new FormControl(null, { validators: [Validators.required] }),
+      idUnidadTransporte: new FormControl(null, { validators: [Validators.required] }),
+      kmInicial: new FormControl(null, { validators: [Validators.required, Validators.pattern('^[0-9]*$')] }),
+    });
+
+    effect(() => {
+      this.detallesDataSource.data = this.rutaDetalles();
     });
   }
 
@@ -90,9 +104,8 @@ export class GeoEditRutasComponent implements OnInit {
   }
 
   async cargarDatosRuta(): Promise<void> {
-    this.isLoading = true;
+    this.isLoading.set(true);
     try {
-      // <--- 4. AÑADIR LA LLAMADA AL SERVICIO DE STATUS EN EL FORKJOIN
       const { ruta, operadores, unidades, statuses } = await lastValueFrom(
         forkJoin({
           ruta: this.geoRutasService.getRutaPorId(this.idRuta),
@@ -102,24 +115,24 @@ export class GeoEditRutasComponent implements OnInit {
         })
       );
 
-      this.rutaActual = ruta;
-      this.operadores = operadores;
-      this.unidades = unidades.filter(u => u.activo);
-      this.statusList = statuses; // Guardamos la lista de estados obtenida
+      this.rutaActual.set(ruta);
+      this.operadores.set(operadores);
+      this.unidades.set(unidades.filter(u => u.activo));
+      this.statusList.set(statuses);
+      this.rutaDetalles.set(ruta.detalles || []);
 
       this.rutaForm.patchValue({
         idUsuario: ruta.idUsuario,
         idUnidadTransporte: ruta.idUnidadTransporte,
-        kmInicial: ruta.kmInicial,
+        kmInicial: ruta.kmInicial ?? null,
       });
 
-      this.detallesDataSource.data = ruta.detalles || [];
     } catch (error) {
       console.error('Error al cargar los datos de la ruta:', error);
       this.mostrarNotificacion('Error al cargar los datos. Verifique la consola.', 'error');
       this.router.navigate(['/rutas']);
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 
@@ -128,26 +141,38 @@ export class GeoEditRutasComponent implements OnInit {
       this.mostrarNotificacion('El formulario tiene errores.', 'advertencia');
       return;
     }
-    this.isSaving = true;
+    this.isSaving.set(true);
     try {
-      await lastValueFrom(this.geoRutasService.updateRuta(this.idRuta, this.rutaForm.value));
+      const formValue = this.rutaForm.getRawValue();
+      
+      const payload: Partial<GeoRutas> = {
+        idUsuario: formValue.idUsuario as number,
+        idUnidadTransporte: formValue.idUnidadTransporte as number,
+        kmInicial: formValue.kmInicial as string,
+      };
+
+      await lastValueFrom(this.geoRutasService.updateRuta(this.idRuta, payload));
       this.mostrarNotificacion('Datos generales actualizados.', 'exito');
     } catch (error) {
       console.error('Error al actualizar encabezado:', error);
       this.mostrarNotificacion('Error al guardar datos generales.', 'error');
     } finally {
-      this.isSaving = false;
+      this.isSaving.set(false);
     }
   }
 
   async cambiarStatusDetalle(detalle: GeoRutasDetalle, nuevoStatusId: number): Promise<void> {
     const statusOriginal = detalle.status;
-    detalle.status = nuevoStatusId;
+    this.rutaDetalles.update(detalles =>
+      detalles.map(d => d.idRutaDetalle === detalle.idRutaDetalle ? { ...d, status: nuevoStatusId } : d)
+    );
     try {
       await lastValueFrom(this.geoRutasDetalleService.update(detalle.idRutaDetalle, { status: nuevoStatusId }));
       this.mostrarNotificacion(`Estado del servicio para '${detalle.nombreComercio}' actualizado.`, 'exito');
     } catch (error) {
-      detalle.status = statusOriginal;
+      this.rutaDetalles.update(detalles =>
+        detalles.map(d => d.idRutaDetalle === detalle.idRutaDetalle ? { ...d, status: statusOriginal } : d)
+      );
       console.error('Error al actualizar estado:', error);
       this.mostrarNotificacion('No se pudo actualizar el estado.', 'error');
     }
@@ -157,7 +182,7 @@ export class GeoEditRutasComponent implements OnInit {
     if (!confirm(`¿Seguro que deseas quitar el servicio de '${nombreComercio}' de esta ruta?`)) return;
     try {
       await lastValueFrom(this.geoRutasDetalleService.remove(idRutaDetalle));
-      this.detallesDataSource.data = this.detallesDataSource.data.filter(d => d.idRutaDetalle !== idRutaDetalle);
+      this.rutaDetalles.update(detalles => detalles.filter(d => d.idRutaDetalle !== idRutaDetalle));
       this.mostrarNotificacion('Servicio eliminado de la ruta.', 'exito');
     } catch (error) {
       console.error('Error al eliminar detalle:', error);
@@ -170,18 +195,19 @@ export class GeoEditRutasComponent implements OnInit {
       width: '80%',
       maxWidth: '1000px',
       data: {
-        serviciosActualesIds: this.detallesDataSource.data.map(d => d.idServicioEquipo)
+        serviciosActualesIds: this.rutaDetalles().map(d => d.idServicioEquipo)
       }
     });
 
     dialogRef.afterClosed().subscribe(async (serviciosSeleccionados: ServicioDisponible[]) => {
       if (!serviciosSeleccionados || serviciosSeleccionados.length === 0) return;
-      this.isSaving = true;
+      this.isSaving.set(true);
       try {
         const requests = serviciosSeleccionados.map(servicio => {
           const payload: GeoRutaDetallePayload = {
             idRuta: this.idRuta,
             idServicioEquipo: servicio.idServicioEquipo,
+            status: 1,
             noSerie: servicio.NoSerie ?? undefined,
             nombreEquipo: servicio.nombreEquipo,
             fechaServicio: servicio.fechaServicio,
@@ -191,7 +217,6 @@ export class GeoEditRutasComponent implements OnInit {
             observacionesServicio: servicio.observaciones_servicio ?? undefined,
             idContrato: servicio.idContrato,
             nombreComercio: servicio.nombreComercio,
-            status: 1, // <--- 5. ASUMIMOS QUE EL ID 1 SIEMPRE SERÁ "PENDIENTE" O EL ESTADO INICIAL
           };
           return this.geoRutasDetalleService.create(payload);
         });
@@ -202,19 +227,13 @@ export class GeoEditRutasComponent implements OnInit {
         console.error('Error al agregar servicios:', error);
         this.mostrarNotificacion('Error al guardar nuevos servicios.', 'error');
       } finally {
-        this.isSaving = false;
+        this.isSaving.set(false);
       }
     });
   }
 
   cancelar(): void {
     this.router.navigate(['/rutas']);
-  }
-  
-  // Función de ayuda opcional (ya no es tan necesaria si solo se muestra en el select)
-  getStatusText(statusId: number): string {
-    const foundStatus = this.statusList.find(s => s.idStatus === statusId);
-    return foundStatus ? foundStatus.status : 'Desconocido';
   }
 
   private mostrarNotificacion(mensaje: string, tipo: 'exito' | 'error' | 'advertencia'): void {

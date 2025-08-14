@@ -14,6 +14,28 @@
   border-radius: 8px;
 }
 
+/* --- INICIO: NUEVOS ESTILOS PARA LA CABECERA CON ACCIONES --- */
+
+/* Convierte la cabecera en un contenedor flex para alinear los elementos */
+.card-header-actions {
+  display: flex;
+  justify-content: space-between; /* Coloca el título a la izquierda y el botón a la derecha */
+  align-items: center; /* Centra los elementos verticalmente */
+  flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea si no hay espacio */
+  gap: 16px; /* Añade un espacio entre elementos si se envuelven */
+  /* Elimina el padding por defecto de mat-card-header para un mejor control */
+  padding: 0 !important;
+  margin-bottom: 24px;
+}
+
+/* El 'spacer' ocupa todo el espacio disponible para empujar el botón a la derecha */
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* --- FIN: NUEVOS ESTILOS --- */
+
+
 /* --- Títulos y Divisores --- */
 .section-title {
   margin-top: 24px;
@@ -38,11 +60,12 @@
   align-items: center;
 }
 
+/* Esta clase ya no se usa para el botón guardar, pero se mantiene por si acaso */
 .header-actions {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 8px; /* Ajuste para alinear con los campos de Material */
+  padding-top: 8px;
 }
 
 /* --- ESTILOS GLOBALES PARA FORMULARIOS (Inputs, Selects) --- */
@@ -156,20 +179,24 @@ td.mat-mdc-cell.mat-mdc-no-data-row-cell {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  /* El botón guardar ahora está aquí abajo */
   padding: 24px 0 0 0;
   margin-top: 24px;
 }
 
 /* Botones con estilo oscuro */
-.form-actions button[mat-stroked-button] {
+.form-actions button[mat-stroked-button],
+.card-header-actions button[mat-stroked-button] { /* Aplicamos también al botón "Volver" */
   color: rgba(255, 255, 255, 0.8);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.form-actions button[mat-stroked-button]:hover {
+.form-actions button[mat-stroked-button]:hover,
+.card-header-actions button[mat-stroked-button]:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* El botón primario ahora es "Guardar" y está en .form-actions */
 .form-actions button[color="primary"] {
   background-color: #5c6bc0; /* Un tono de azul que funciona bien en fondo oscuro */
   color: #ffffff;
