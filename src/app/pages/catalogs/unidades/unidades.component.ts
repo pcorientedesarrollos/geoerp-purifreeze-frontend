@@ -1,5 +1,8 @@
-import { Component, OnInit, ViewChild, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, signal, ChangeDetectionStrategy, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, lastValueFrom } from 'rxjs';
 
 // Angular Material Modules
 import { MatCardModule } from '@angular/material/card';
@@ -16,8 +19,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 // Componentes y Servicios
-import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { UnidadesAccionesComponent } from './unidades-acciones/unidades-acciones.component';
 import { GeoUnidadTransportesService } from '../../../services/geo_unidadTransportes/geo-unidad-transportes.service';
 import { GeoUnidadTransporte } from '../../../interfaces/geo_unidad-transportes';
@@ -26,113 +27,117 @@ import { GeoUnidadTransporte } from '../../../interfaces/geo_unidad-transportes'
   selector: 'app-unidades',
   standalone: true,
   imports: [
-    CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatTableModule,
+    CommonModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatIconModule, MatTableModule,
     MatPaginatorModule, MatSortModule, MatFormFieldModule, MatInputModule,
     MatProgressSpinnerModule, MatDialogModule, MatSnackBarModule, MatTooltipModule
-],
+  ],
   templateUrl: './unidades.component.html',
-  styleUrl: './unidades.component.css'
+  styleUrls: ['./unidades.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush, // <-- MEJORA DE RENDIMIENTO
 })
-export class UnidadesComponent implements OnInit, AfterViewInit {
-
+export class UnidadesComponent implements OnInit {
+  // --- INYECCIÓN DE DEPENDENCIAS MODERNA ---
   private unidadService = inject(GeoUnidadTransportesService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  displayedColumns: string[] = ['nombreUnidad', 'placaUnidad', 'marcaUnidad', 'modeloUnidad', 'unidadActiva', 'acciones'];
-  dataSource = new MatTableDataSource<GeoUnidadTransporte>();
-  isLoading = true;
-  errorOcurred = false;
+  // --- GESTIÓN DE ESTADO CON SIGNALS ---
+  public isLoading = signal(true);
+  public errorOcurred = signal(false);
+  public unidades = signal<GeoUnidadTransporte[]>([]);
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  public displayedColumns: string[] = ['nombreUnidad', 'placaUnidad', 'marcaUnidad', 'modeloUnidad', 'unidadActiva', 'acciones'];
+  public dataSource = new MatTableDataSource<GeoUnidadTransporte>();
+  public filterControl = new FormControl('');
+
+  // --- MEJORA: Uso de setters para Paginator y Sort ---
+  @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
+
+  @ViewChild(MatSort) set sort(sort: MatSort) {
+    if (sort) {
+      this.dataSource.sort = sort;
+    }
+  }
+
+  constructor() {
+    // --- MEJORA: Filtro reactivo con limpieza automática de subscripción ---
+    this.filterControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed()
+    ).subscribe(value => {
+      this.dataSource.filter = (value || '').trim().toLowerCase();
+      if (this.dataSource.paginator) {
+        this.dataSource.paginator.firstPage();
+      }
+    });
+
+    // --- MEJORA: `effect` para sincronizar el estado reactivo con la tabla ---
+    effect(() => {
+      this.dataSource.data = this.unidades();
+    });
+  }
 
   ngOnInit(): void {
     this.loadUnidades();
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-  }
-
-  loadUnidades(): void {
-    this.isLoading = true;
-    this.errorOcurred = false;
-    this.unidadService.getUnidadesTransporte().pipe(
-      catchError(() => {
-        this.isLoading = false;
-        this.errorOcurred = true;
-        this.snackBar.open('No se pudieron cargar las unidades.', 'Cerrar', { duration: 5000 });
-        return of([]);
-      })
-    ).subscribe(data => {
-      this.isLoading = false;
-      // --- CAMBIO ---
-      // Ordenamos la data por ID descendente en la carga inicial
-      this.dataSource.data = data.sort((a, b) => b.idUnidadTransporte - a.idUnidadTransporte);
-    });
-  }
-
-  applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
+  async loadUnidades(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorOcurred.set(false);
+    try {
+      const data = await lastValueFrom(this.unidadService.getUnidadesTransporte());
+      const sortedData = data.sort((a, b) => b.idUnidadTransporte - a.idUnidadTransporte);
+      this.unidades.set(sortedData);
+    } catch (error) {
+      this.errorOcurred.set(true);
+      this.snackBar.open('No se pudieron cargar las unidades.', 'Cerrar', { duration: 5000 });
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
-  openUnidadDialog(unidad?: GeoUnidadTransporte): void {
+  async openUnidadDialog(unidad?: GeoUnidadTransporte): Promise<void> {
     const dialogRef = this.dialog.open(UnidadesAccionesComponent, {
-      width: '600px',
-      data: { unidad: unidad ? {...unidad} : undefined }, // Pasamos una copia para no mutar el original
+      // width: '600px',
+      data: { unidad: unidad ? { ...unidad } : undefined },
       disableClose: true
     });
 
-    // --- CAMBIO RADICAL EN LA LÓGICA ---
-    dialogRef.afterClosed().subscribe((result: GeoUnidadTransporte) => {
-      // 'result' ahora es el objeto de la unidad guardada, o undefined si se canceló.
-      if (result) {
-        const currentData = this.dataSource.data;
-        
-        // Verificamos si es una edición buscando el índice del elemento.
-        const index = currentData.findIndex(u => u.idUnidadTransporte === result.idUnidadTransporte);
+    const result = await lastValueFrom(dialogRef.afterClosed());
 
+    if (result) {
+      // --- MEJORA: Actualización inmutable del estado ---
+      this.unidades.update(currentUnidades => {
+        const index = currentUnidades.findIndex(u => u.idUnidadTransporte === result.idUnidadTransporte);
         if (index > -1) {
-          // Es una EDICIÓN: removemos el viejo y ponemos el nuevo al principio.
-          currentData.splice(index, 1);
-          currentData.unshift(result);
+          // Es una edición: reemplaza el elemento existente
+          const updatedUnidades = [...currentUnidades];
+          updatedUnidades[index] = result;
+          return updatedUnidades;
         } else {
-          // Es una CREACIÓN: simplemente lo ponemos al principio.
-          currentData.unshift(result);
-        }
-
-        // Actualizamos el dataSource para que la tabla se refresque.
-        this.dataSource.data = currentData;
-        
-        this.snackBar.open('Unidad guardada exitosamente.', 'OK', { duration: 3000 });
-      }
-    });
-  }
-
-  deleteUnidad(id: number): void {
-    if (confirm('¿Está seguro de que desea eliminar esta unidad?')) {
-      this.unidadService.deleteUnidadTransporte(id).subscribe({
-        next: () => {
-          // --- CAMBIO ---
-          // También actualizamos la lista en el frontend al eliminar.
-          const currentData = this.dataSource.data;
-          const index = currentData.findIndex(u => u.idUnidadTransporte === id);
-          if (index > -1) {
-            currentData.splice(index, 1);
-            this.dataSource.data = currentData;
-          }
-          this.snackBar.open('Unidad eliminada correctamente.', 'OK', { duration: 3000 });
-        },
-        error: () => {
-          this.snackBar.open('Error al eliminar la unidad.', 'Cerrar', { duration: 5000 });
+          // Es una creación: añade el nuevo elemento al principio
+          return [result, ...currentUnidades];
         }
       });
+      this.snackBar.open('Unidad guardada exitosamente.', 'OK', { duration: 3000 });
+    }
+  }
+
+  async deleteUnidad(id: number): Promise<void> {
+    if (confirm('¿Está seguro de que desea eliminar esta unidad?')) {
+      try {
+        await lastValueFrom(this.unidadService.deleteUnidadTransporte(id));
+        // --- MEJORA: Actualización inmutable del estado ---
+        this.unidades.update(unidades => unidades.filter(u => u.idUnidadTransporte !== id));
+        this.snackBar.open('Unidad eliminada correctamente.', 'OK', { duration: 3000 });
+      } catch (error) {
+        this.snackBar.open('Error al eliminar la unidad.', 'Cerrar', { duration: 5000 });
+      }
     }
   }
 }

@@ -1,143 +1,10 @@
-// // Contenido para reemplazar completamente el archivo existente
-// import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-// import { CommonModule, DatePipe } from '@angular/common';
-// import { forkJoin } from 'rxjs';
-// import { animate, state, style, transition, trigger } from '@angular/animations';
-
-// // --- NUEVAS IMPORTACIONES DE ANGULAR MATERIAL ---
-// import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-// import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-// import { MatSort, MatSortModule } from '@angular/material/sort';
-// import { MatFormFieldModule } from '@angular/material/form-field';
-// import { MatInputModule } from '@angular/material/input';
-// import { MatCardModule } from '@angular/material/card';
-
-// // --- IMPORTS EXISTENTES ---
-// import { MatIconModule } from '@angular/material/icon';
-// import { MatButtonModule } from '@angular/material/button';
-// import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
-// // --- NUESTROS COMPONENTES Y SERVICIOS ---
-// import { DetalleClienteComponent } from './detalle-cliente/detalle-cliente.component';
-// import { GeoClientesDireccionService } from '../../../services/geo_direccionClientes/geo-clientes-direccion.service';
-// import { GeoClientesService } from '../../../services/geo_clientes/geo-clientes.service';
-// import { GeoServiciosService } from '../../../services/geo_servicios/geo-servicios.service';
-// import { GeoCliente } from '../../../interfaces/geo_clientes';
-// import { Servicio } from '../../../interfaces/geo_servicios';
-
-// export interface ClienteDisplayData {
-//   idDireccion: number;
-//   idCliente: number;
-//   direccion: string;
-//   nombreSucursal: string;
-//   razon_social?: string;
-//   nombreComercio?: string;
-//   servicios?: Servicio[];
-//   serviciosLoading?: boolean;
-// }
-
-// @Component({
-//   selector: 'app-clientes',
-//   standalone: true,
-//   imports: [
-//     CommonModule, MatTableModule, MatIconModule, MatButtonModule,
-//     MatProgressSpinnerModule, DetalleClienteComponent,
-//     // --- NUEVOS MÓDULOS AÑADIDOS ---
-//     MatCardModule, MatFormFieldModule, MatInputModule, MatPaginatorModule, MatSortModule
-// ],
-//   templateUrl: './clientes.component.html',
-//   styleUrls: ['./clientes.component.css'],
-//   animations: [
-//     trigger('detailExpand', [
-//       state('collapsed,void', style({ height: '0px', minHeight: '0', visibility: 'hidden' })),
-//       state('expanded', style({ height: '*', visibility: 'visible' })),
-//       transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-//     ]),
-//   ],
-// })
-// export class ClientesComponent implements OnInit, AfterViewInit {
-//   displayedColumns: string[] = ['expand', 'nombreComercio', 'razon_social', 'direccion', 'nombreSucursal', 'acciones'];
-//   // --- CAMBIO A MATTABLEDATASOURCE ---
-//   dataSource: MatTableDataSource<ClienteDisplayData>;
-//   expandedElement: ClienteDisplayData | null = null;
-//   isLoading = true; // Variable para controlar el spinner principal
-
-//   // --- REFERENCIAS A PAGINADOR Y ORDENADOR ---
-//   @ViewChild(MatPaginator) paginator!: MatPaginator;
-//   @ViewChild(MatSort) sort!: MatSort;
-
-//   constructor(
-//     private geoClientesService: GeoClientesService,
-//     private geoClientesDireccionService: GeoClientesDireccionService,
-//     private serviciosService: GeoServiciosService
-//   ) {
-//     this.dataSource = new MatTableDataSource<ClienteDisplayData>([]);
-//   }
-
-//   ngOnInit(): void {
-//     this.cargarDatos();
-//   }
-  
-//   ngAfterViewInit(): void {
-//     this.dataSource.paginator = this.paginator;
-//     this.dataSource.sort = this.sort;
-//   }
-
-//   cargarDatos(): void {
-//     this.isLoading = true;
-//     forkJoin({
-//       clientes: this.geoClientesService.getClientes(),
-//       direcciones: this.geoClientesDireccionService.getClientesDireccion(),
-//     }).subscribe({
-//       next: (data) => {
-//         const clientesMap = new Map<number, GeoCliente>(data.clientes.map(cliente => [cliente.idcliente, cliente]));
-//         const displayData = data.direcciones.map((direccion) => ({
-//           ...direccion,
-//           razon_social: clientesMap.get(direccion.idCliente)?.razon_social,
-//           nombreComercio: clientesMap.get(direccion.idCliente)?.nombreComercio,
-//         }));
-//         this.dataSource.data = displayData; // Asignamos los datos al MatTableDataSource
-//         this.isLoading = false;
-//       },
-//       error: (err) => {
-//         console.error('Error al cargar los datos de clientes', err);
-//         this.isLoading = false;
-//       },
-//     });
-//   }
-  
-//   // --- NUEVA FUNCIÓN PARA FILTRAR ---
-//   applyFilter(event: Event) {
-//     const filterValue = (event.target as HTMLInputElement).value;
-//     this.dataSource.filter = filterValue.trim().toLowerCase();
-//     if (this.dataSource.paginator) {
-//       this.dataSource.paginator.firstPage();
-//     }
-//   }
-
-//   toggleRow(element: ClienteDisplayData): void {
-//     this.expandedElement = this.expandedElement === element ? null : element;
-//     if (this.expandedElement && !element.servicios) {
-//       element.serviciosLoading = true;
-//       this.serviciosService.getServiciosPorCliente(element.idCliente).subscribe(servicios => {
-//         element.servicios = servicios;
-//         element.serviciosLoading = false;
-//       });
-//     }
-//   }
-
-//   agregarCliente(): void { console.log('Abrir diálogo para agregar nuevo cliente...'); }
-//   editarCliente(cliente: ClienteDisplayData): void { console.log('Editando cliente:', cliente.idDireccion); }
-//   eliminarCliente(cliente: ClienteDisplayData): void { console.log('Eliminando cliente:', cliente.idDireccion); }
-// }
-
-
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, signal, ChangeDetectionStrategy, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin, Subscription } from 'rxjs';
+import { forkJoin, lastValueFrom } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { ReactiveFormsModule, FormControl } from '@angular/forms'; // <<-- AÑADIDO
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Angular Material
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -148,7 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressSpinnerModule, MatSpinner } from '@angular/material/progress-spinner';
 
 // Componentes y Servicios
 import { DetalleClienteComponent } from './detalle-cliente/detalle-cliente.component';
@@ -158,7 +25,6 @@ import { GeoServiciosService } from '../../../services/geo_servicios/geo-servici
 import { GeoCliente } from '../../../interfaces/geo_clientes';
 import { Servicio } from '../../../interfaces/geo_servicios';
 
-// Interfaz (sin cambios)
 export interface ClienteDisplayData {
   idDireccion: number;
   idCliente: number;
@@ -177,10 +43,11 @@ export interface ClienteDisplayData {
     CommonModule, MatTableModule, MatIconModule, MatButtonModule,
     MatProgressSpinnerModule, DetalleClienteComponent, MatCardModule,
     MatFormFieldModule, MatInputModule, MatPaginatorModule, MatSortModule,
-    ReactiveFormsModule // <<-- AÑADIDO
+    ReactiveFormsModule, MatSpinner
   ],
   templateUrl: './clientes.component.html',
   styleUrls: ['./clientes.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('detailExpand', [
       state('collapsed,void', style({ height: '0px', minHeight: '0', visibility: 'hidden' })),
@@ -189,84 +56,88 @@ export interface ClienteDisplayData {
     ]),
   ],
 })
-export class ClientesComponent implements OnInit, AfterViewInit, OnDestroy { // <<-- AÑADIDO OnDestroy
-  displayedColumns: string[] = ['expand', 'nombreComercio', 'razon_social', 'direccion', 'nombreSucursal', 'acciones'];
-  dataSource: MatTableDataSource<ClienteDisplayData>;
-  expandedElement: ClienteDisplayData | null = null;
-  isLoading = true;
+export class ClientesComponent implements OnInit {
+  private geoClientesService = inject(GeoClientesService);
+  private geoClientesDireccionService = inject(GeoClientesDireccionService);
+  private serviciosService = inject(GeoServiciosService);
 
-  // ---- NUEVA IMPLEMENTACIÓN DEL FILTRO ----
-  filterControl = new FormControl('');
-  private filterSubscription: Subscription;
-  // -----------------------------------------
+  public isLoading = signal(true);
+  public clientes = signal<ClienteDisplayData[]>([]);
+  public expandedElement = signal<ClienteDisplayData | null>(null);
+  
+  public displayedColumns: string[] = ['expand', 'nombreComercio', 'razon_social', 'direccion', 'nombreSucursal', 'acciones'];
+  public dataSource = new MatTableDataSource<ClienteDisplayData>();
+  public filterControl = new FormControl('');
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  // --- CORRECCIÓN 1: Usar setters para Paginator y Sort ---
+  // Esta función se ejecutará tan pronto como el paginador esté disponible en el DOM.
+  @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
 
-  constructor(
-    private geoClientesService: GeoClientesService,
-    private geoClientesDireccionService: GeoClientesDireccionService,
-    private serviciosService: GeoServiciosService
-  ) {
-    this.dataSource = new MatTableDataSource<ClienteDisplayData>([]);
-    
-    // Suscripción a los cambios del campo de filtro
-    this.filterSubscription = this.filterControl.valueChanges.pipe(
-      debounceTime(300), // Espera 300ms para no filtrar en cada tecla
-      distinctUntilChanged() // Solo filtra si el valor cambió
+  @ViewChild(MatSort) set sort(sort: MatSort) {
+    if (sort) {
+      this.dataSource.sort = sort;
+    }
+  }
+
+  constructor() {
+    this.filterControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed()
     ).subscribe(value => {
       this.applyFilter(value || '');
     });
-  }
 
-  ngOnInit(): void {
-    this.cargarDatos();
-  }
-  
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-    // Personalizar el filtro para buscar en todos los campos del objeto
+    effect(() => {
+      this.dataSource.data = this.clientes();
+    });
+
+    // --- CORRECCIÓN 2: Mover el filterPredicate al constructor ---
+    // Solo necesita definirse una vez y no depende de la vista.
     this.dataSource.filterPredicate = (data: ClienteDisplayData, filter: string) => {
       const dataStr = (
-        data.nombreComercio || '' +
-        data.razon_social || '' +
-        data.direccion || '' +
-        data.nombreSucursal || ''
+        (data.nombreComercio || '') +
+        (data.razon_social || '') +
+        (data.direccion || '') +
+        (data.nombreSucursal || '')
       ).toLowerCase();
       return dataStr.includes(filter);
     };
   }
 
-  ngOnDestroy(): void {
-    // Evita fugas de memoria
-    this.filterSubscription.unsubscribe();
+  ngOnInit(): void {
+    this.cargarDatos();
   }
 
-  cargarDatos(): void {
-    this.isLoading = true;
-    forkJoin({
-      clientes: this.geoClientesService.getClientes(),
-      direcciones: this.geoClientesDireccionService.getClientesDireccion(),
-    }).subscribe({
-      next: (data) => {
-        const clientesMap = new Map<number, GeoCliente>(data.clientes.map(cliente => [cliente.idcliente, cliente]));
-        const displayData = data.direcciones.map((direccion) => ({
-          ...direccion,
-          razon_social: clientesMap.get(direccion.idCliente)?.razon_social,
-          nombreComercio: clientesMap.get(direccion.idCliente)?.nombreComercio,
-        }));
-        this.dataSource.data = displayData;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error al cargar los datos de clientes', err);
-        this.isLoading = false;
-      },
-    });
+  // ngAfterViewInit ya no es necesario para asignar el paginador y el sort.
+  
+  async cargarDatos(): Promise<void> {
+    this.isLoading.set(true);
+    try {
+      const { clientes, direcciones } = await lastValueFrom(forkJoin({
+        clientes: this.geoClientesService.getClientes(),
+        direcciones: this.geoClientesDireccionService.getClientesDireccion(),
+      }));
+      
+      const clientesMap = new Map<number, GeoCliente>(clientes.map(cliente => [cliente.idcliente, cliente]));
+      const displayData = direcciones.map((direccion) => ({
+        ...direccion,
+        razon_social: clientesMap.get(direccion.idCliente)?.razon_social,
+        nombreComercio: clientesMap.get(direccion.idCliente)?.nombreComercio,
+      }));
+      
+      this.clientes.set(displayData);
+    } catch (err) {
+      console.error('Error al cargar los datos de clientes', err);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
   
-  // ---- FUNCIÓN DE FILTRO MODIFICADA ----
   applyFilter(filterValue: string) {
     this.dataSource.filter = filterValue.trim().toLowerCase();
     if (this.dataSource.paginator) {
@@ -274,19 +145,29 @@ export class ClientesComponent implements OnInit, AfterViewInit, OnDestroy { // 
     }
   }
 
-  // Lógica de expansión (sin cambios)
-  toggleRow(element: ClienteDisplayData): void {
-    this.expandedElement = this.expandedElement === element ? null : element;
-    if (this.expandedElement && !element.servicios) {
-      element.serviciosLoading = true;
-      this.serviciosService.getServiciosPorCliente(element.idCliente).subscribe(servicios => {
-        element.servicios = servicios;
-        element.serviciosLoading = false;
-      });
+  async toggleRow(element: ClienteDisplayData): Promise<void> {
+    const isExpanding = this.expandedElement() !== element;
+    this.expandedElement.set(isExpanding ? element : null);
+
+    if (isExpanding && !element.servicios) {
+      this.clientes.update(clientes => 
+        clientes.map(c => c.idDireccion === element.idDireccion ? { ...c, serviciosLoading: true } : c)
+      );
+      
+      try {
+        const servicios = await lastValueFrom(this.serviciosService.getServiciosPorCliente(element.idCliente));
+        this.clientes.update(clientes =>
+          clientes.map(c => c.idDireccion === element.idDireccion ? { ...c, servicios, serviciosLoading: false } : c)
+        );
+      } catch (error) {
+        console.error("Error al cargar servicios", error);
+        this.clientes.update(clientes =>
+          clientes.map(c => c.idDireccion === element.idDireccion ? { ...c, serviciosLoading: false } : c)
+        );
+      }
     }
   }
 
-  // Funciones de acción (sin cambios)
   agregarCliente(): void { console.log('Abrir diálogo para agregar nuevo cliente...'); }
   editarCliente(cliente: ClienteDisplayData): void { console.log('Editando cliente:', cliente.idDireccion); }
 }
