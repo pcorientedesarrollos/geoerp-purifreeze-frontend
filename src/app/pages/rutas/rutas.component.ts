@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild, signal, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -32,7 +32,6 @@ import { GeoRutaDetallePayload, ServicioDisponible } from '../../interfaces/geo-
 import { GeoRutasDetalleService } from '../../services/geo_rutasDetalle/geo-rutas-detalles.service';
 import { CreateGeoRutaPayload } from '../../interfaces/geo-rutas';
 
-// --- MEJORA: Interfaz para un formulario fuertemente tipado ---
 interface RutaFormControls {
   idUsuario: FormControl<number | null>;
   idUnidadTransporte: FormControl<number | null>;
@@ -50,10 +49,9 @@ interface RutaFormControls {
   ],
   templateUrl: './rutas.component.html',
   styleUrls: ['./rutas.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush, // <-- MEJORA DE RENDIMIENTO
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RutasComponent implements OnInit {
-  // --- INYECCIÓN DE DEPENDENCIAS MODERNA ---
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
@@ -62,7 +60,6 @@ export class RutasComponent implements OnInit {
   private geoUnidadTransportesService = inject(GeoUnidadTransportesService);
   private geoUsuariosService = inject(GeoUsuariosService);
 
-  // --- GESTIÓN DE ESTADO CON SIGNALS ---
   public isLoading = signal(true);
   public isSaving = signal(false);
   public operadores = signal<GeoUsuario[]>([]);
@@ -75,7 +72,11 @@ export class RutasComponent implements OnInit {
   public columnasTabla: string[] = ['select', 'nombreComercio', 'nombreEquipo', 'tipoServicio', 'fechaServicio'];
   public filterControl = new FormControl('');
 
-  // --- MEJORA: Uso de setters para Paginator y Sort ---
+  public isSaveDisabled = computed(() => {
+    return this.rutaForm.invalid || this.selection.isEmpty() || this.isSaving();
+  });
+  public selectedServicesCount = computed(() => this.selection.selected.length);
+
   @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
     if (paginator) this.serviciosDisponibles.paginator = paginator;
   }
@@ -90,14 +91,12 @@ export class RutasComponent implements OnInit {
       kmInicial: new FormControl(null, [Validators.required, Validators.pattern('^[0-9]*$')]),
     }) as FormGroup<RutaFormControls>;
 
-    // --- MEJORA: `takeUntilDestroyed` para manejo automático de subscripciones ---
     this.filterControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       takeUntilDestroyed()
     ).subscribe(value => this.applyFilter(value || ''));
 
-    // --- MEJORA: `effect` para sincronizar el estado reactivo con la tabla ---
     effect(() => {
       this.serviciosDisponibles.data = this.servicios();
     });
@@ -110,16 +109,21 @@ export class RutasComponent implements OnInit {
   async cargarDatosIniciales(): Promise<void> {
     this.isLoading.set(true);
     try {
+      // ===== CAMBIOS CLAVE AQUÍ =====
+      // Se llama a los nuevos métodos para obtener solo los recursos disponibles.
       const { operadores, unidades, servicios } = await lastValueFrom(forkJoin({
-        operadores: this.geoUsuariosService.getUsuarios(),
-        unidades: this.geoUnidadTransportesService.getUnidadesTransporte(),
+        operadores: this.geoUsuariosService.getAvailableOperators(),
+        unidades: this.geoUnidadTransportesService.getAvailableUnidadesTransporte(),
         servicios: this.geoRutasDetalleService.findServiciosDisponiblesParaRuta(),
       }));
       this.operadores.set(operadores);
-      this.unidades.set(unidades.filter((u) => u.activo));
+      // El filtro `.filter(u => u.activo)` ya no es necesario aquí, 
+      // porque el backend ahora se encarga de ello.
+      this.unidades.set(unidades);
       this.servicios.set(servicios);
     } catch (error) {
       this.mostrarNotificacion('Error al cargar datos. Verifique la conexión.', 'error');
+      console.error('Error detallado al cargar datos:', error);
     } finally {
       this.isLoading.set(false);
     }
@@ -132,9 +136,9 @@ export class RutasComponent implements OnInit {
     }
   }
 
-  // Lógica de Selección (sin cambios funcionales)
   isAllSelected(): boolean {
-    return this.selection.selected.length === this.serviciosDisponibles.data.length;
+    const numRows = this.serviciosDisponibles.data.length;
+    return this.selectedServicesCount() === numRows && numRows > 0;
   }
   toggleAllRows(): void {
     this.isAllSelected()
@@ -146,7 +150,6 @@ export class RutasComponent implements OnInit {
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.idServicioEquipo}`;
   }
 
-  // --- MEJORA: Lógica de guardado con async/await para mayor claridad ---
   async guardarRuta(): Promise<void> {
     if (this.rutaForm.invalid) {
       this.mostrarNotificacion('Complete los datos generales de la ruta.', 'advertencia');
@@ -165,8 +168,7 @@ export class RutasComponent implements OnInit {
       const detallesPayload: GeoRutaDetallePayload[] = this.selection.selected.map(servicio => ({
         idRuta: nuevaRuta.idRuta,
         idServicioEquipo: servicio.idServicioEquipo,
-        status: 1, // Por defecto: 1 = Pendiente
-        // ...resto de propiedades
+        status: 1,
         noSerie: servicio.NoSerie ?? undefined,
         nombreEquipo: servicio.nombreEquipo,
         fechaServicio: servicio.fechaServicio,
