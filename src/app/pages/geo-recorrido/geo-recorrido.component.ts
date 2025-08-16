@@ -1,3 +1,5 @@
+// RUTA COMPLETA: src/app/pages/geo-recorrido/geo-recorrido.component.ts
+
 import {
   Component,
   OnInit,
@@ -5,6 +7,7 @@ import {
   ViewChild,
   AfterViewInit,
   ChangeDetectorRef,
+  OnDestroy, // <-- CORRECCIÓN #1: Añadir OnDestroy aquí
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -17,9 +20,19 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, distinctUntilChanged, forkJoin, map, of } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  forkJoin,
+  map,
+  of,
+  Subscription,
+} from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+// --- CORRECCIÓN #2: Importar Socket de ngx-socket-io ---
+import { Socket } from 'ngx-socket-io';
 
 import { GeoRecorridoService } from '../../services/geo-recorrido/geo-recorrido.service';
 import { GeoRutasService } from '../../services/geo_rutas/geo-rutas.service';
@@ -56,12 +69,14 @@ declare var google: any;
   templateUrl: './geo-recorrido.component.html',
   styleUrls: ['./geo-recorrido.component.css'],
 })
-export class GeoRecorridoComponent implements OnInit, AfterViewInit {
+// --- CORRECCIÓN #1 (Continuación): Implementar la interfaz ---
+export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
   private geoRutasService = inject(GeoRutasService);
   private recorridoService = inject(GeoRecorridoService);
   private snackBar = inject(MatSnackBar);
   private datePipe = inject(DatePipe);
   private cdr = inject(ChangeDetectorRef);
+  private socketSubscription!: Subscription; // La '!' indica que se inicializará en ngOnInit
 
   private directionsService!: google.maps.DirectionsService;
 
@@ -88,7 +103,7 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('mapaRecorridos') private appMapComponent!: MapsComponent;
 
-  constructor() {}
+  constructor(private socket: Socket) {}
 
   ngOnInit(): void {
     this.initializeGoogleMapsServices();
@@ -96,6 +111,47 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     this.filterControl.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((valorFiltro) => this.aplicarFiltro(valorFiltro));
+    this.escucharCoordenadasEnTiempoReal();
+  }
+
+  // --- CORRECCIÓN #1 (Continuación): Implementar el método ngOnDestroy ---
+  ngOnDestroy(): void {
+    if (this.socketSubscription) {
+      this.socketSubscription.unsubscribe();
+    }
+  }
+
+  // (El resto del código es idéntico al que me pasaste y está bien)
+  escucharCoordenadasEnTiempoReal() {
+    this.socketSubscription = this.socket
+      .fromEvent<GeoRecorrido>('nueva-coordenada')
+      .subscribe((nuevoPunto) => {
+        console.log('¡Nueva coordenada recibida por WebSocket!', nuevoPunto);
+
+        if (this.selectedRutaId && nuevoPunto.idRuta === this.selectedRutaId) {
+          const rutaReal = this.mapRoutes.find(
+            (r) => r.idRecorrido === this.selectedRutaId! * 100
+          );
+          if (rutaReal) {
+            rutaReal.path.push({
+              lat: Number(nuevoPunto.latitud),
+              lng: Number(nuevoPunto.longitud),
+            });
+            this.mapRoutes = [...this.mapRoutes];
+          }
+
+          const marcadorFin = this.mapMarkers.find(
+            (m) => m.options?.title === 'Última Posición Registrada'
+          );
+          if (marcadorFin) {
+            marcadorFin.position = {
+              lat: Number(nuevoPunto.latitud),
+              lng: Number(nuevoPunto.longitud),
+            };
+            this.mapMarkers = [...this.mapMarkers];
+          }
+        }
+      });
   }
 
   private initializeGoogleMapsServices(): void {
@@ -118,7 +174,7 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     ): boolean => {
       const dataStr = (
         data.idRuta.toString() +
-        (data.statusRuta?.toLowerCase() || '') + // <-- CORRECCIÓN
+        (data.statusRuta?.toLowerCase() || '') +
         data.idUsuario.toString() +
         data.idUnidadTransporte.toString() +
         this.datePipe.transform(data.fechaHora, 'fullDate')
@@ -396,27 +452,19 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
       verticalPosition: 'top',
     });
   }
-
-  // ¡NUEVO MÉTODO AYUDANTE!
-  /**
-   * Convierte una duración en minutos a un formato legible "Xh Ym".
-   * @param totalMinutes Duración total en minutos.
-   */
   formatarDuracion(totalMinutes: number | null | undefined): string {
     if (
       totalMinutes === null ||
       totalMinutes === undefined ||
       totalMinutes < 0
     ) {
-      return '--'; // Devuelve un valor por defecto si no hay datos
+      return '--';
     }
     if (totalMinutes === 0) {
       return '0m';
     }
-
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-
     let result = '';
     if (hours > 0) {
       result += `${hours}h `;
@@ -424,7 +472,6 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
     if (minutes > 0) {
       result += `${minutes}m`;
     }
-
     return result.trim();
   }
 
@@ -448,7 +495,7 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit {
       case RutaStatus.PLANEADA:
         return 'event';
       case RutaStatus.EN_CURSO:
-        return 'local_shipping'; // Corregido: Ruta-Status -> RutaStatus
+        return 'local_shipping';
       case RutaStatus.FINALIZADA:
         return 'check_circle';
       case RutaStatus.CANCELADA:
