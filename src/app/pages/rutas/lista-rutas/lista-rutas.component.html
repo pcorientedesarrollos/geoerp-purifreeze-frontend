@@ -99,7 +99,7 @@
       </div>
 
       <!-- Paginador -->
-      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
     }
   </mat-card-content>
 </mat-card>
@@ -123,6 +123,7 @@
             <div mat-card-avatar class="detalle-avatar">{{ i + 1 }}</div>
             <mat-card-title>{{ detalle.nombreComercio }}</mat-card-title>
             <mat-card-subtitle>{{ detalle.tipoServicio }}</mat-card-subtitle>
+
           </mat-card-header>
           <mat-card-content>
             <div class="detalle-info-row">
@@ -133,6 +134,11 @@
               <mat-icon>calendar_today</mat-icon>
               <span><strong>Fecha del servicio:</strong> {{ detalle.fechaServicio | date:'dd/MM/yyyy' }} a las {{ detalle.hora }}</span>
             </div>
+            <div class="detalle-info-row">
+            <mat-icon>visibility</mat-icon>     
+            <span><strong>Observaciones del servicio:</strong> {{ detalle.observacionesServicio}}</span>
+            </div>
+
           </mat-card-content>
         </mat-card>
       }

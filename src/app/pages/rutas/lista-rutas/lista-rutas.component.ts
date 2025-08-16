@@ -287,10 +287,7 @@ export class ListaRutasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * CORRECCIÓN: Navega a la ruta absoluta para editar.
-   * @param idRuta El ID de la ruta a editar.
-   */
+
   editarRuta(idRuta: number): void {
     // Se usa la ruta completa desde la raíz de la app para evitar errores.
     this.router.navigate(['/rutas/editar', idRuta]);
@@ -317,9 +314,7 @@ export class ListaRutasComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * CORRECCIÓN: Navega a la ruta absoluta para crear.
-   */
+
   crearRuta(): void {
     // Se usa la ruta completa desde la raíz de la app para evitar errores.
     this.router.navigate(['/rutas/crear']);
