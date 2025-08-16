@@ -46,6 +46,12 @@ export class GeoRutasService {
       .pipe(catchError(this.handleError));
   }
 
+    softDeleteRuta(id: number): Observable<any> {
+    return this.http
+      .delete(`${this.API_URI}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
   getClientesGeolocalizados(
     idRuta: number
   ): Observable<ClienteGeolocalizado[]> {

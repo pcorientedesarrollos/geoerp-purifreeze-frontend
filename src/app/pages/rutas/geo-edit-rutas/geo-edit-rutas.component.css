@@ -216,3 +216,27 @@ td.mat-mdc-cell.mat-mdc-no-data-row-cell {
 .form-actions mat-progress-spinner {
     --mat-progress-spinner-active-indicator-color: white;
 }
+
+/* ===== INICIO: CÓDIGO AÑADIDO PARA SOFT DELETE ===== */
+
+/* Estilo para la fila de la tabla cuando el servicio está "eliminado" */
+.mat-mdc-row.servicio-eliminado {
+  /* Hacemos la fila más transparente para que se vea "deshabilitada" */
+  opacity: 0.45; 
+  /* Un fondo ligeramente diferente para distinguirla, que funciona con el tema oscuro */
+  background-color: rgba(0, 0, 0, 0.1); 
+  /* Animación suave para el cambio de estado */
+  transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+/* Al pasar el mouse sobre una fila eliminada, no queremos el efecto hover normal */
+.mat-mdc-row.servicio-eliminado:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Deshabilita los eventos de puntero en la fila eliminada para que no se pueda interactuar
+   con los botones o selects que contiene, ya que están lógicamente deshabilitados. */
+.mat-mdc-row.servicio-eliminado .mat-mdc-cell {
+  pointer-events: none;
+}
+

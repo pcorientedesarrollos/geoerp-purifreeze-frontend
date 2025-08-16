@@ -5,6 +5,7 @@ export enum RutaStatus {
   EN_CURSO = 'EN_CURSO',
   FINALIZADA = 'FINALIZADA',
   CANCELADA = 'CANCELADA',
+  ELIMINADA = "ELIMINADA",
 }
 
 export interface GeoRutas {

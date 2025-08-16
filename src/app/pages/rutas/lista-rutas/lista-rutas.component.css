@@ -298,3 +298,24 @@ DISEÑO RESPONSIVO
     gap: 10px;
   }
 }
+
+/*
+================================================
+=== CÓDIGO AÑADIDO PARA SOFT DELETE EN LISTA ===
+================================================
+*/
+
+/* Estilo para la fila de la tabla cuando la ruta está "eliminada" */
+.mat-mdc-row.ruta-eliminada {
+  /* Hacemos la fila más transparente para que se vea "deshabilitada" */
+  opacity: 0.45; 
+  /* Un fondo ligeramente diferente para distinguirla, que funciona con el tema oscuro */
+  background-color: rgba(0, 0, 0, 0.1); 
+  /* Animación suave para el cambio de estado */
+  transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+/* Al pasar el mouse sobre una fila eliminada, no queremos el efecto hover normal */
+.mat-mdc-row.ruta-eliminada:hover {
+  background: rgba(0, 0, 0, 0.1);
+}

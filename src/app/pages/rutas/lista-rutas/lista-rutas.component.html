@@ -1,115 +1,124 @@
+<!-- Tarjeta principal que contiene toda la página -->
 <mat-card class="page-card">
-  <mat-card-header class="page-header">
+  <!-- Encabezado con título y botón de acción -->
+  <header class="page-header">
     <mat-card-title>
       <mat-icon>alt_route</mat-icon>
-      <h1>Gestión de Rutas</h1>
+      <h1>Listado de Rutas</h1>
     </mat-card-title>
- 
     <span class="spacer"></span>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="crearRuta()">
+        <mat-icon>add</mat-icon>
+        <span>Crear Nueva Ruta</span>
+      </button>
+    </div>
+  </header>
 
-<!-- Dentro de tu mat-card-header -->
-<div class="header-actions">
-  <!-- Botón PRINCIPAL (elevado y con color) para la acción primaria -->
-  <button mat-raised-button color="primary" [routerLink]="['/rutas/crear']">
-    <mat-icon>add</mat-icon>
-    <span>Ruta</span>
-  </button>
-</div>
-
-  </mat-card-header>
-
+  <!-- Contenido principal: filtro y tabla -->
   <mat-card-content>
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Buscar en rutas...</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Ej: Operador, vehículo, fecha...">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    @if (isLoading) {
+      <div class="loading-container">
+        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+      </div>
+    } @else {
+      <!-- Campo de filtro -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Buscar en rutas...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ej: Operador, ID, Estado...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
 
-    @if (!isLoading) {
-      <div class="table-container mat-elevation-z4">
+      <!-- Contenedor de la tabla para el scroll -->
+      <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
 
           <!-- Columna ID -->
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> #Ruta </th>
-            <td mat-cell *matCellDef="let ruta"> {{ ruta.idRuta }} </td>
-          </ng-container>
-
-          <!-- Columna Fecha -->
-          <ng-container matColumnDef="fecha">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha </th>
-            <!-- ===== SOLUCIÓN AQUÍ: Usamos el DatePipe directamente ===== -->
-            <td mat-cell *matCellDef="let ruta"> {{ ruta.fechaHora | date:'dd/MM/yyyy' }} </td>
+          <ng-container matColumnDef="idRuta">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> #Ruta</th>
+            <td mat-cell *matCellDef="let ruta"> {{ruta.idRuta}} </td>
           </ng-container>
 
           <!-- Columna Operador -->
           <ng-container matColumnDef="operador">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Operador </th>
-            <td mat-cell *matCellDef="let ruta"> {{ getNombreOperador(ruta.idUsuario) }} </td>
+            <td mat-cell *matCellDef="let ruta"> {{ruta.usuario?.usuario || 'N/A'}} </td>
           </ng-container>
 
-          <!-- Columna Vehículo -->
-          <ng-container matColumnDef="vehiculo">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Vehículo </th>
-            <td mat-cell *matCellDef="let ruta"> {{ getNombreVehiculo(ruta.idUnidadTransporte) }} </td>
+          <!-- Columna Unidad -->
+          <ng-container matColumnDef="unidad">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Unidad </th>
+            <td mat-cell *matCellDef="let ruta"> {{ruta.unidadTransporte?.nombreUnidad || 'N/A'}} </td>
+          </ng-container>
+          
+          <!-- Columna Fecha -->
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Finalizacion </th>
+            <td mat-cell *matCellDef="let ruta"> {{ruta.fechaHora | date:'dd/MM/yyyy HH:mm'}} </td>
           </ng-container>
 
-          <!-- Columna Clientes (Paradas) -->
+          <!-- Columna Estado -->
+          <ng-container matColumnDef="statusRuta">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+            <td mat-cell *matCellDef="let ruta"> {{ruta.statusRuta}} </td>
+          </ng-container>
+
+          <!-- Columna Clientes -->
           <ng-container matColumnDef="clientes">
             <th mat-header-cell *matHeaderCellDef> Clientes </th>
             <td mat-cell *matCellDef="let ruta">
-              <button mat-stroked-button color="accent" (click)="verDetalles(ruta.detalles, modalDetalles)" [disabled]="!ruta.detalles || ruta.detalles.length === 0">
-                <mat-icon>people_alt</mat-icon>
-                <span>Ver ({{ ruta.detalles?.length || 0 }})</span>
+              <button mat-stroked-button (click)="verDetalles(ruta.detalles, detallesModal)">
+                Ver ({{ruta.detalles?.length || 0}})
               </button>
             </td>
           </ng-container>
-
+          
           <!-- Columna Acciones -->
           <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef class="actions-header"> Acciones </th>
+            <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let ruta">
-              <button mat-icon-button color="primary" matTooltip="Editar Ruta" (click)="editarRuta(ruta.idRuta)">
+              <button mat-icon-button color="primary" matTooltip="Editar Ruta"
+                      [disabled]="ruta.statusRuta === 'ELIMINADA'"
+                      (click)="editarRuta(ruta.idRuta)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" matTooltip="Eliminar Ruta" (click)="eliminarRuta(ruta.idRuta)">
+              <button mat-icon-button color="warn" matTooltip="Eliminar Ruta"
+                      [disabled]="ruta.statusRuta === 'ELIMINADA'"
+                      (click)="eliminarRuta(ruta)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
           </ng-container>
 
+          <!-- Definición de filas -->
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-          
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              [ngClass]="{'ruta-eliminada': row.statusRuta === 'ELIMINADA'}">
+          </tr>
         </table>
-        
-        @if(!isLoading && dataSource.data.length === 0) {
-          <div class="no-data-message">
-            <mat-icon>info_outline</mat-icon>
-            <p>No se encontraron rutas para mostrar.</p>
-          </div>
-        }
+      </div>
 
-        <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
-      </div>
-    } @else {
-      <div class="loading-container">
-        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-      </div>
+      <!-- Paginador -->
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
     }
   </mat-card-content>
 </mat-card>
 
-<!-- Plantilla del Modal (Sin cambios) -->
-<ng-template #modalDetalles let-data>
+<!-- Template para el Modal de Detalles -->
+<ng-template #detallesModal let-data>
   <h2 mat-dialog-title>
-    <mat-icon>list_alt</mat-icon>
-    <span>Detalles de los Servicios</span>
+    <mat-icon>people</mat-icon>
+    <span>Clientes en la Ruta</span>
   </h2>
   <mat-dialog-content class="mat-typography">
-    @if(data.detalles && data.detalles.length > 0) {
-      @for(detalle of data.detalles; track detalle.idRutaDetalle; let i = $index) {
-        <mat-card class="detalle-card" appearance="outlined">
+    @if (!data.detalles || data.detalles.length === 0) {
+      <div class="no-data-message">
+        <mat-icon>info</mat-icon>
+        <p>Esta ruta no tiene servicios ni clientes asignados.</p>
+      </div>
+    } @else {
+      @for (detalle of data.detalles; track detalle.idRutaDetalle; let i = $index) {
+        <mat-card class="detalle-card">
           <mat-card-header>
             <div mat-card-avatar class="detalle-avatar">{{ i + 1 }}</div>
             <mat-card-title>{{ detalle.nombreComercio }}</mat-card-title>
@@ -117,28 +126,16 @@
           </mat-card-header>
           <mat-card-content>
             <div class="detalle-info-row">
-              <mat-icon>local_shipping</mat-icon>
-              <span><strong>Equipo:</strong> {{ detalle.nombreEquipo || 'No especificado' }}</span>
+              <mat-icon>build</mat-icon>
+              <span><strong>Equipo:</strong> {{ detalle.nombreEquipo }}</span>
             </div>
             <div class="detalle-info-row">
-              <mat-icon>qr_code_2</mat-icon>
-              <span><strong>No. Serie:</strong> {{ detalle.noSerie || 'N/A' }}</span>
+              <mat-icon>calendar_today</mat-icon>
+              <span><strong>Fecha del servicio:</strong> {{ detalle.fechaServicio | date:'dd/MM/yyyy' }} a las {{ detalle.hora }}</span>
             </div>
-            <div class="detalle-info-row">
-              <mat-icon>event</mat-icon>
-              <span><strong>Fecha/Hora:</strong> {{ detalle.fechaServicio | date:'dd/MM/yyyy' }} - {{ detalle.hora }}</span>
-            </div>
-            @if(detalle.descripcion) {
-              <div class="detalle-info-row">
-                <mat-icon>notes</mat-icon>
-                <span><strong>Descripción:</strong> {{ detalle.descripcion }}</span>
-              </div>
-            }
           </mat-card-content>
         </mat-card>
       }
-    } @else {
-      <p>Esta ruta no tiene servicios asignados.</p>
     }
   </mat-dialog-content>
   <mat-dialog-actions align="end">
