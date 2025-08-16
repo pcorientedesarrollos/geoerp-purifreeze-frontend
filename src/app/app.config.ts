@@ -19,10 +19,8 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 
 // ============================================================================
-// === CORRECCIÓN: Renombramos 'config' a 'socketIoConfig' para evitar colisión de nombres ===
-// ============================================================================
 const socketIoConfig: SocketIoConfig = {
-  url: 'http://localhost:3000', // Reemplaza esto si tu backend no corre en localhost
+  url: 'http://localhost:3000', // Reemplaza esto si el backend no corre en localhost
   options: {},
 };
 // ============================================================================
