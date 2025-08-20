@@ -1,6 +1,6 @@
-<!-- Tarjeta principal que contiene toda la página -->
+<!-- COPIA Y PEGA ESTE CONTENIDO COMPLETO -->
+
 <mat-card class="page-card">
-  <!-- Encabezado con título y botón de acción -->
   <header class="page-header">
     <mat-card-title>
       <mat-icon>alt_route</mat-icon>
@@ -15,55 +15,51 @@
     </div>
   </header>
 
-  <!-- Contenido principal: filtro y tabla -->
   <mat-card-content>
     @if (isLoading) {
       <div class="loading-container">
         <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
       </div>
     } @else {
-      <!-- Campo de filtro -->
       <mat-form-field appearance="outline" class="filter-field">
         <mat-label>Buscar en rutas...</mat-label>
         <input matInput (keyup)="applyFilter($event)" placeholder="Ej: Operador, ID, Estado...">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
-      <!-- Contenedor de la tabla para el scroll -->
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
 
-          <!-- Columna ID -->
           <ng-container matColumnDef="idRuta">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> #Ruta</th>
             <td mat-cell *matCellDef="let ruta"> {{ruta.idRuta}} </td>
           </ng-container>
 
-          <!-- Columna Operador -->
           <ng-container matColumnDef="operador">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Operador </th>
             <td mat-cell *matCellDef="let ruta"> {{ruta.usuario?.usuario || 'N/A'}} </td>
           </ng-container>
 
-          <!-- Columna Unidad -->
           <ng-container matColumnDef="unidad">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Unidad </th>
             <td mat-cell *matCellDef="let ruta"> {{ruta.unidadTransporte?.nombreUnidad || 'N/A'}} </td>
           </ng-container>
           
-          <!-- Columna Fecha -->
           <ng-container matColumnDef="fecha">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Finalizacion </th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Creación </th>
             <td mat-cell *matCellDef="let ruta"> {{ruta.fechaHora | date:'dd/MM/yyyy HH:mm'}} </td>
           </ng-container>
 
-          <!-- Columna Estado -->
-          <ng-container matColumnDef="statusRuta">
+          <!-- Columna de Estado corregida -->
+          <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
-            <td mat-cell *matCellDef="let ruta"> {{ruta.statusRuta}} </td>
+            <td mat-cell *matCellDef="let ruta">
+              <span class="status-chip" [ngClass]="'status-' + getStatusClass(ruta.status)">
+                {{ruta.status?.status || 'Desconocido'}}
+              </span>
+            </td>
           </ng-container>
 
-          <!-- Columna Clientes -->
           <ng-container matColumnDef="clientes">
             <th mat-header-cell *matHeaderCellDef> Clientes </th>
             <td mat-cell *matCellDef="let ruta">
@@ -73,38 +69,42 @@
             </td>
           </ng-container>
           
-          <!-- Columna Acciones -->
+          <!-- Columna de Acciones corregida -->
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let ruta">
               <button mat-icon-button color="primary" matTooltip="Editar Ruta"
-                      [disabled]="ruta.statusRuta === 'ELIMINADA'"
+                      [disabled]="ruta.status?.status === 'Eliminado'"
                       (click)="editarRuta(ruta.idRuta)">
                 <mat-icon>edit</mat-icon>
               </button>
               <button mat-icon-button color="warn" matTooltip="Eliminar Ruta"
-                      [disabled]="ruta.statusRuta === 'ELIMINADA'"
+                      [disabled]="ruta.status?.status === 'Eliminado'"
                       (click)="eliminarRuta(ruta)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
           </ng-container>
 
-          <!-- Definición de filas -->
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-              [ngClass]="{'ruta-eliminada': row.statusRuta === 'ELIMINADA'}">
+              [ngClass]="{'ruta-eliminada': row.status?.status === 'Eliminado'}">
+          </tr>
+          
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+              No se encontraron rutas que coincidan con el filtro.
+            </td>
           </tr>
         </table>
       </div>
 
-      <!-- Paginador -->
-      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
     }
   </mat-card-content>
 </mat-card>
 
-<!-- Template para el Modal de Detalles -->
+<!-- El template del modal no necesita cambios -->
 <ng-template #detallesModal let-data>
   <h2 mat-dialog-title>
     <mat-icon>people</mat-icon>
@@ -123,22 +123,11 @@
             <div mat-card-avatar class="detalle-avatar">{{ i + 1 }}</div>
             <mat-card-title>{{ detalle.nombreComercio }}</mat-card-title>
             <mat-card-subtitle>{{ detalle.tipoServicio }}</mat-card-subtitle>
-
           </mat-card-header>
           <mat-card-content>
-            <div class="detalle-info-row">
-              <mat-icon>build</mat-icon>
-              <span><strong>Equipo:</strong> {{ detalle.nombreEquipo }}</span>
-            </div>
-            <div class="detalle-info-row">
-              <mat-icon>calendar_today</mat-icon>
-              <span><strong>Fecha del servicio:</strong> {{ detalle.fechaServicio | date:'dd/MM/yyyy' }} a las {{ detalle.hora }}</span>
-            </div>
-            <div class="detalle-info-row">
-            <mat-icon>visibility</mat-icon>     
-            <span><strong>Observaciones del servicio:</strong> {{ detalle.observacionesServicio}}</span>
-            </div>
-
+            <div class="detalle-info-row"><mat-icon>build</mat-icon><span><strong>Equipo:</strong> {{ detalle.nombreEquipo }}</span></div>
+            <div class="detalle-info-row"><mat-icon>calendar_today</mat-icon><span><strong>Fecha del servicio:</strong> {{ detalle.fechaServicio | date:'dd/MM/yyyy' }} a las {{ detalle.hora }}</span></div>
+            <div class="detalle-info-row"><mat-icon>visibility</mat-icon><span><strong>Observaciones del servicio:</strong> {{ detalle.observacionesServicio}}</span></div>
           </mat-card-content>
         </mat-card>
       }

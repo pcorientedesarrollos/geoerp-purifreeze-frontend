@@ -1,179 +1,89 @@
-/* src/app/pages/geo-recorrido/geo-recorrido.component.css */
+/* COPIA Y PEGA ESTE CONTENIDO COMPLETO */
 
 :host {
   display: block;
-  padding: 24px;
+  padding: 1rem;
 }
 
-.recorrido-page-container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.recorrido-page-card {
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
-mat-card {
-  background-color: #2c2c2c;
+.section-title {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
-/* === SECCIÓN DE FILTROS === */
-.filter-card .filter-controls {
+.controls-container {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: 16px;
-  padding: 8px 0 !important;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .filter-field {
-  flex: 1 1 400px;
+  flex-grow: 1;
+  max-width: 400px;
 }
 
-/* === CONTENEDOR DEL MAPA === */
-.map-wrapper-card mat-card-content {
-  padding: 0 !important;
-  height: 70vh;
-  position: relative; /* Necesario para el overlay */
-}
-
-.map-overlay-message {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+/* ===================== ESTILOS PARA EL NUEVO PANEL SUPERIOR ===================== */
+.top-panel-container {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 1.5rem;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+.details-panel {
+  flex: 2; /* Ocupa más espacio */
+  min-width: 320px;
+}
+
+.legend-panel {
+  flex: 1; /* Ocupa menos espacio */
+  min-width: 250px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  padding-left: 24px;
+}
+
+.details-header {
+  display: flex;
   align-items: center;
-  gap: 16px; /* Espacio entre el spinner/icono y el texto */
-  color: rgba(255, 255, 255, 0.7);
-  text-align: center;
-  padding: 2rem;
-  background: rgba(44, 44, 44, 0.85);
-  z-index: 10;
-  backdrop-filter: blur(2px);
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 
-.map-overlay-message mat-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
+.details-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
-/* === TABLA DE DATOS === */
-.table-container {
-  overflow: auto;
-}
-
-.table-wrapper {
-  overflow: auto;
-}
-
-table {
-  width: 100%;
-  background-color: transparent;
-}
-
-.mat-mdc-header-cell,
-.mat-mdc-cell {
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.mat-mdc-paginator {
-  background-color: #2c2c2c;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* === INTERACCIÓN DE LA TABLA === */
-.clickable-row {
-  cursor: pointer;
-  transition: background-color 0.2s ease-out;
-}
-
-.clickable-row:hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.selected-row {
-  background-color: rgba(
-    138,
-    180,
-    248,
-    0.2
-  ) !important; /* Azul de acento de Google */
-  font-weight: 500;
-}
-
-.selected-row .mat-mdc-cell {
-  color: #cddc39; /* Un color que resalte en la fila seleccionada */
-}
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
+.live-indicator {
+  background-color: #f44336;
+  color: white;
+  padding: 4px 12px;
   border-radius: 16px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid transparent;
+  font-size: 0.8rem;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
 }
 
-.status-icon {
-  font-size: 18px;
-  height: 18px;
-  width: 18px;
-  margin-right: 6px;
-}
-
-/* Estado: EN CURSO */
-.status-en_curso {
-  background-color: rgba(234, 67, 53, 0.15); /* Rojo de Google, transparente */
-  color: #f79a92;
-  border-color: #ea4335;
-}
-
-/* Estado: FINALIZADA */
-.status-finalizada {
-  background-color: rgba(52, 168, 83, 0.15); /* Verde de Google, transparente */
-  color: #93e4ac;
-  border-color: #34a853;
-}
-
-/* Estado: PLANEADA */
-.status-planeada {
-  background-color: rgba(66, 133, 244, 0.15); /* Azul de Google, transparente */
-  color: #a4c2f4;
-  border-color: #4285f4;
-}
-
-/* Estado: CANCELADA */
-.status-cancelada {
-  background-color: rgba(189, 189, 189, 0.15); /* Gris */
-  color: #bdbdbd;
-  border-color: #9e9e9e;
-}
-
-/* ===================== ESTILOS OPCIONALES PARA RESALTAR FILA ===================== */
-.row-status-en_curso {
-  background-color: rgba(234, 67, 53, 0.05);
-}
-.row-status-finalizada.selected-row,
-.row-status-en_curso.selected-row {
-  background-color: rgba(
-    138,
-    180,
-    248,
-    0.25
-  ) !important; /* Mantiene el color de selección */
-}
-.summary-card {
-  background-color: #3c3c3e;
-  border-left: 4px solid #4285f4;
+.details-placeholder {
+  color: #9e9e9e;
+  font-style: italic;
 }
 
 .summary-content {
   display: flex;
-  gap: 24px;
-  padding-top: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .summary-item {
@@ -183,10 +93,7 @@ table {
 }
 
 .summary-item mat-icon {
-  font-size: 36px;
-  height: 36px;
-  width: 36px;
-  color: #a4c2f4;
+  color: #757575;
 }
 
 .summary-text {
@@ -194,13 +101,138 @@ table {
   flex-direction: column;
 }
 
-.summary-label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+.summary-text span {
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 
-.summary-value {
+.summary-text label {
+  font-size: 0.8rem;
+  color: #9e9e9e;
+}
+
+/* ===================== ESTILOS PARA LA LEYENDA ===================== */
+.legend-title {
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.map-legend {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-box {
+  width: 25px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.real-route { background-color: #FF5722; }
+.optimal-route { background-color: #4285F4; }
+
+.legend-item .legend-icon {
   font-size: 20px;
-  font-weight: 500;
-  color: #ffffff;
+  width: 20px;
+  height: 20px;
+  color: #757575;
+}
+
+.visited { color: #34A853 !important; }
+.pending { color: #BDBDBD !important; }
+.start { color: #2196F3 !important; }
+.end { color: #f44336 !important; }
+
+
+/* ===================== ESTILOS PARA EL MAPA Y LA TABLA (SIN CAMBIOS GRANDES) ===================== */
+.map-container {
+  width: 100%;
+  overflow: hidden; /* Para la animación */
+}
+
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #333;
+}
+
+.map-overlay-message {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  color: #bdbdbd;
+}
+.map-overlay-message mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.map-fab-button {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+}
+
+.section-divider {
+  margin: 2rem 0;
+}
+
+.table-container {
+  position: relative;
+  min-height: 200px; /* Evita que la tabla colapse al cargar */
+  overflow: auto;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.selected-row {
+  background-color: rgba(66, 133, 244, 0.2);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  background-color: #424242;
+  border: 1px solid #616161;
+}
+.status-chip .status-icon {
+  font-size: 18px;
+}
+.status-en-curso { background-color: rgba(255, 152, 0, 0.2); border-color: #FF9800; color: #FF9800; }
+.status-finalizada { background-color: rgba(76, 175, 80, 0.2); border-color: #4CAF50; color: #4CAF50; }
+.status-confirmado, .status-planeada { background-color: rgba(33, 150, 243, 0.2); border-color: #2196F3; color: #2196F3; }
+.status-cancelada, .status-eliminado { background-color: rgba(244, 67, 54, 0.2); border-color: #f44336; color: #f44336; }
+
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }

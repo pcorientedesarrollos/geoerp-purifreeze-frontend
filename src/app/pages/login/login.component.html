@@ -1,35 +1,70 @@
+<!-- src/app/components/login/login.component.html -->
 <div class="login-container">
-  <div class="login-box">
-    <!-- MODO DE LOGIN FACIAL -->
-    @if (loginMode === 'face') {
-    <h1>Reconocimiento Facial</h1>
-    <p>Coloca tu rostro en el centro del recuadro.</p>
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Iniciar Sesión</mat-card-title>
+      <mat-card-subtitle>Ingresa tus credenciales para acceder</mat-card-subtitle>
+    </mat-card-header>
 
-    <div class="video-container">
-      <video #videoElement autoplay muted playsinline></video>
-      <canvas #canvasElement></canvas>
-    </div>
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- Campo de Usuario -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Usuario</mat-label>
+          <input
+            matInput
+            placeholder="Escribe tu nombre de usuario"
+            formControlName="username"
+            required
+          />
+          <mat-icon matSuffix>person</mat-icon>
+          @if (loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched) {
+            <mat-error>El nombre de usuario es requerido.</mat-error>
+          }
+        </mat-form-field>
 
-    @if (statusMessage) {
-    <p class="status">{{ statusMessage }}</p>
-    }
+        <!-- Campo de Contraseña -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            placeholder="Escribe tu contraseña"
+            formControlName="password"
+            required
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="hidePassword = !hidePassword"
+            type="button"
+            [attr.aria-label]="'Ocultar o mostrar contraseña'"
+          >
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+            <mat-error>La contraseña es requerida.</mat-error>
+          }
+        </mat-form-field>
 
-    <button mat-stroked-button (click)="switchToPasswordLogin()">
-      O iniciar sesión con contraseña
-    </button>
-    }
+        <!-- Mensaje de Error General -->
+        @if (errorMessage) {
+          <div class="error-message">
+            {{ errorMessage }}
+          </div>
+        }
 
-    <!-- MODO DE LOGIN CON CONTRASEÑA -->
-    @if (loginMode === 'password') {
-    <h1>Iniciar Sesión</h1>
-    <p>Ingresa tus credenciales.</p>
-
-    <!-- Aquí iría tu formulario de login con contraseña -->
-    <p style="margin: 40px 0">(Formulario de contraseña no implementado)</p>
-
-    <button mat-stroked-button (click)="switchToFaceLogin()">
-      O iniciar sesión con rostro
-    </button>
-    }
-  </div>
+        <!-- Botón de Envío -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width login-button"
+          [disabled]="loginForm.invalid"
+        >
+          Acceder
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
 </div>
