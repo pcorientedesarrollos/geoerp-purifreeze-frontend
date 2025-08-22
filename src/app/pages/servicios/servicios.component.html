@@ -1,1 +1,88 @@
-<p>servicios works!</p>
+<!-- src/app/components/servicios/servicios.component.html -->
+
+<div class="main-container">
+
+  <header class="header-section">
+    <h1>Listado de Servicios</h1>
+    <button class="create-btn">Crear Nuevo Servicio</button>
+  </header>
+
+  <!-- Barra de Filtros (nuevo layout) -->
+  <div class="filter-bar">
+    <input 
+      type="text" 
+      class="search-input"
+      placeholder="Buscar por ID, Cliente, No. Serie, Estado..."
+      [ngModel]="terminoBusqueda()"
+      (ngModelChange)="terminoBusqueda.set($event)">
+      
+    <div class="date-filters">
+      <input 
+        type="date" 
+        class="date-input"
+        [ngModel]="fechaInicio()"
+        (ngModelChange)="fechaInicio.set($event)">
+      <input 
+        type="date"
+        class="date-input"
+        [ngModel]="fechaFin()"
+        (ngModelChange)="fechaFin.set($event)">
+      <button (click)="resetearFiltros()" class="reset-btn">Limpiar</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    @if (isLoading()) {
+      <div class="feedback-message">Cargando...</div>
+    } @else if (error()) {
+      <div class="feedback-message error">{{ error() }}</div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>#Servicio</th>
+            <th>Cliente</th>
+            <th>No. Serie</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (servicio of serviciosFiltrados(); track servicio.idServicioEquipo) {
+            <tr>
+              <td>{{ servicio.idServicioEquipo }}</td>
+              <td>{{ servicio.nombreComercio }}</td>
+              <td>{{ servicio.NoSerie || 'N/A' }}</td>
+              <td>{{ servicio.fechaServicio | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="servicio.status?.toLowerCase()">
+                  {{ servicio.status }}
+                </span>
+              </td>
+              <!-- La columna de acciones se deja vacía para cuadrar el diseño -->
+              <td></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="no-results">
+                No se encontraron servicios con los filtros aplicados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <footer class="pagination-footer">
+    <span>Items por página: 10</span>
+    <span>Mostrando {{ serviciosFiltrados().length }} de {{ todosLosServicios().length }}</span>
+    <div class="pagination-controls">
+      <button disabled>&laquo;</button>
+      <button disabled>&lsaquo;</button>
+      <button disabled>&rsaquo;</button>
+      <button disabled>&raquo;</button>
+    </div>
+  </footer>
+</div>

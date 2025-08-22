@@ -1,12 +1,14 @@
-<!-- COPIA Y PEGA ESTE CONTENIDO COMPLETO -->
+<!-- COPIA Y PEGA ESTE CONTENIDO COMPLETO EN TU ARCHIVO .HTML -->
 
 <mat-card class="recorrido-page-card">
+  <!-- La sección superior del monitor (título, filtros, mapa) se mantiene sin cambios -->
   <mat-card-header>
     <mat-card-title>Monitor de Rutas y Recorridos</mat-card-title>
     <mat-card-subtitle>Filtra y selecciona una ruta para analizar su trazado y estado.</mat-card-subtitle>
   </mat-card-header>
 
   <mat-card-content>
+    <!-- Controles y Mapa (se mantienen igual) -->
     <h3 class="section-title">Controles de Visualización</h3>
     <div class="controls-container">
       <mat-form-field appearance="outline" class="filter-field">
@@ -38,9 +40,9 @@
           
           @if (selectedRuta.status.status.toLowerCase() === 'finalizada') {
             <div class="summary-content">
-              <div class="summary-item" matTooltip="Distancia total registrada por el GPS"><mat-icon>linear_scale</mat-icon><div class="summary-text"><span>{{ selectedRuta.distanciaTotalKm | number : "1.2-2" }} km</span><label>Distancia</label></div></div>
-              <div class="summary-item" matTooltip="Duración total del viaje"><mat-icon>timer</mat-icon><div class="summary-text"><span>{{ formatarDuracion(selectedRuta.duracionMinutos) }}</span><label>Duración</label></div></div>
-              <div class="summary-item" matTooltip="Consumo estimado de combustible"><mat-icon>local_gas_station</mat-icon><div class="summary-text"><span>{{ selectedRuta.consumoEstimadoLitros | number : "1.2-2" }} L</span><label>Consumo</label></div></div>
+              <div class="summary-item" matTooltip="Distancia total"><mat-icon>linear_scale</mat-icon><div class="summary-text"><span>{{ selectedRuta.distanciaTotalKm | number : "1.2-2" }} km</span><label>Distancia</label></div></div>
+              <div class="summary-item" matTooltip="Duración del viaje"><mat-icon>timer</mat-icon><div class="summary-text"><span>{{ formatarDuracion(selectedRuta.duracionMinutos) }}</span><label>Duración</label></div></div>
+              <div class="summary-item" matTooltip="Consumo estimado"><mat-icon>local_gas_station</mat-icon><div class="summary-text"><span>{{ selectedRuta.consumoEstimadoLitros | number : "1.2-2" }} L</span><label>Consumo</label></div></div>
             </div>
           } @else {
             <p class="details-placeholder">Las estadísticas de la ruta se mostrarán aquí una vez que finalice.</p>
@@ -79,61 +81,72 @@
         }
       </div>
     </div>
+    <!-- Fin de la sección de mapa y controles -->
 
     <mat-divider class="section-divider"></mat-divider>
 
-    <h3 class="section-title">Listado de Rutas</h3>
-    <div class="table-container">
-      <!-- Mensaje de carga inicial -->
-      @if (isLoadingData) {
-        <div class="loading-container">
-          <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-          <p>Cargando rutas...</p>
+    <!-- ======================================================================= -->
+    <!-- === SECCIÓN DE LA TABLA CON EL ESTILO ESTÁNDAR DE LAS OTRAS VISTAS === -->
+    <!-- ======================================================================= -->
+    <div class="list-card">
+        <div class="list-header">
+            <div class="list-title">
+                <mat-icon>alt_route</mat-icon>
+                <h3>Listado de Recorridos</h3>
+            </div>
         </div>
-      } @else {
-        <table mat-table [dataSource]="dataSource" matSort>
-          <ng-container matColumnDef="idRuta">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header># Ruta</th>
-            <td mat-cell *matCellDef="let ruta">{{ ruta.idRuta }}</td>
-          </ng-container>
 
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
-            <td mat-cell *matCellDef="let ruta">
-              <span class="status-chip" [ngClass]="'status-' + getStatusClass(ruta.status)">
-                <mat-icon class="status-icon">{{ getIconForStatus(ruta.idEstatus) }}</mat-icon>
-                {{ ruta.status?.status || 'Desconocido' }}
-              </span>
-            </td>
-          </ng-container>
+        <div class="table-container">
+            @if (isLoadingData && !dataSource.data.length) {
+                <div class="loading-container">
+                    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+                    <p>Cargando recorridos...</p>
+                </div>
+            } @else {
+                <table mat-table [dataSource]="dataSource" matSort>
+                    <ng-container matColumnDef="idRuta">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header># RUTA</th>
+                        <td mat-cell *matCellDef="let ruta">{{ ruta.idRuta }}</td>
+                    </ng-container>
+                    
+                    <ng-container matColumnDef="operador">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>OPERADOR</th>
+                        <td mat-cell *matCellDef="let ruta">{{ ruta.usuario?.usuario }}</td>
+                    </ng-container>
 
-          <!-- ===================== ¡CORRECCIÓN DEFINITIVA! ===================== -->
-          <ng-container matColumnDef="operador">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Operador</th>
-            <td mat-cell *matCellDef="let ruta">{{ ruta.usuario?.usuario }}</td>
-          </ng-container>
+                    <ng-container matColumnDef="unidad">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>UNIDAD</th>
+                        <td mat-cell *matCellDef="let ruta">{{ ruta.unidadTransporte?.nombreUnidad }}</td>
+                    </ng-container>
 
-          <ng-container matColumnDef="unidad">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Unidad</th>
-            <td mat-cell *matCellDef="let ruta">{{ ruta.unidadTransporte?.nombreUnidad }}</td>
-          </ng-container>
-          <!-- ======================================================================= -->
+                    <ng-container matColumnDef="fechaHora">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>FECHA</th>
+                        <td mat-cell *matCellDef="let ruta">{{ ruta.fechaHora | date : "dd/MM/yyyy HH:mm" }}</td>
+                    </ng-container>
 
-          <ng-container matColumnDef="fechaHora">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha y Hora</th>
-            <td mat-cell *matCellDef="let ruta">{{ ruta.fechaHora | date : "dd/MM/yyyy HH:mm" }}</td>
-          </ng-container>
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>ESTADO</th>
+                        <td mat-cell *matCellDef="let ruta">
+                            <span class="status-label" [ngClass]="'status-' + getStatusClass(ruta.status)">
+                                {{ ruta.status?.status || 'Desconocido' }}
+                            </span>
+                        </td>
+                    </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns" 
-              (click)="seleccionarRuta(row)"
-              class="clickable-row" 
-              [class.selected-row]="row.idRuta === selectedRutaId">
-          </tr>
-          <tr class="mat-row" *matNoDataRow><td class="mat-cell" [attr.colspan]="displayedColumns.length">No se encontraron rutas que coincidan con la búsqueda.</td></tr>
-        </table>
-        <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons aria-label="Seleccionar página de rutas"></mat-paginator>
-      }
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns" 
+                        (click)="seleccionarRuta(row)"
+                        class="clickable-row" 
+                        [class.selected-row]="row.idRuta === selectedRutaId">
+                    </tr>
+                    <tr class="mat-row" *matNoDataRow><td class="mat-cell" [attr.colspan]="displayedColumns.length">No se encontraron recorridos.</td></tr>
+                </table>
+            }
+        </div>
+
+        @if (!isLoadingData) {
+            <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons aria-label="Seleccionar página"></mat-paginator>
+        }
     </div>
   </mat-card-content>
 </mat-card>
