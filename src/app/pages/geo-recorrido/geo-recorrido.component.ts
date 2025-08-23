@@ -60,20 +60,22 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public filterControl = new FormControl('', { nonNullable: true });
   
-  // ===================== ¡CORRECCIÓN DEFINITIVA! =====================
-  // Estos nombres ahora coinciden 1 a 1 con los `matColumnDef` del archivo .html que te proporcionaré.
   public displayedColumns: string[] = ['idRuta', 'status', 'operador', 'unidad', 'fechaHora'];
-  // =======================================================================
 
   public dataSource = new MatTableDataSource<GeoRutas>();
   public selectedRuta: GeoRutas | null = null;
   public mapaVisible = true;
-  public isLoadingData = true; // Inicia en true
+  public isLoadingData = true;
 
   public mapRoutes: MapRoute[] = [];
   public mapMarkers: MapMarker[] = [];
   public mapCenter: google.maps.LatLngLiteral = { lat: 20.9754, lng: -89.6169 };
   public mapZoom = 12;
+
+  // === INICIO DE LA CORRECCIÓN ===
+  // Variable para contar los intentos de carga de la API de Google Maps
+  private mapsApiLoadTries = 0;
+  // === FIN DE LA CORRECCIÓN ===
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -164,7 +166,8 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mapRoutes = []; this.mapMarkers = [];
 
     forkJoin({
-      recorrido: this.recorridoService.getRecorridos().pipe(map(recs => recs.filter(r => r.idRuta === ruta.idRuta)), catchError(() => of([]))),
+      // Usamos la versión eficiente que ya habíamos implementado
+      recorrido: this.recorridoService.getRecorridosPorRuta(ruta.idRuta).pipe(catchError(() => of([]))),
       clientes: this.geoRutasService.getClientesGeolocalizados(ruta.idRuta).pipe(catchError(() => of([])))
     }).subscribe({
       next: async ({ recorrido, clientes }) => {
@@ -206,13 +209,25 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
     this.snackBar.open(mensaje, 'Cerrar', { duration: 5000, panelClass: [`snackbar-${tipo}`], verticalPosition: 'top' });
   }
 
+  // === INICIO DE LA CORRECCIÓN ===
+  // Esta es la función modificada que ahora previene el bucle infinito.
   private initializeGoogleMapsServices(): void {
-    if (typeof google !== 'undefined' && google.maps) {
+    if (typeof google !== 'undefined' && google.maps && google.maps.DirectionsService) {
+      // Si la API está lista, la inicializamos y terminamos.
       this.directionsService = new google.maps.DirectionsService();
-    } else {
+    } else if (this.mapsApiLoadTries < 20) { 
+      // Si no está lista, pero no hemos superado los 20 intentos...
+      this.mapsApiLoadTries++; // Incrementamos el contador.
+      // Y lo volvemos a intentar en 500ms.
       setTimeout(() => this.initializeGoogleMapsServices(), 500);
+    } else {
+      // Si superamos los 20 intentos, nos rendimos y mostramos un error.
+      this.isLoadingData = false; // Detenemos el spinner de carga.
+      this.mostrarNotificacion('Error crítico: No se pudo inicializar el servicio de mapas.', 'error');
+      console.error('No se pudo cargar la API de Google Maps después de 20 intentos.');
     }
   }
+  // === FIN DE LA CORRECCIÓN ===
   
   escucharCoordenadasEnTiempoReal(): void {
     this.socketSubscription = this.socket.fromEvent<GeoRecorrido>('nueva-coordenada').subscribe(punto => {
@@ -291,4 +306,4 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!bounds.isEmpty()) { mapaGoogle.fitBounds(bounds, 80); } 
     else { mapaGoogle.setCenter(this.mapCenter); mapaGoogle.setZoom(this.mapZoom); }
   }
-}
+}  
