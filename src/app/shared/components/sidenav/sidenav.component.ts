@@ -9,6 +9,7 @@ interface NavItem {
   label: string;
   route?: string;
   children?: NavItem[];
+  hidden?: boolean; // <-- OCULTAR, SI VAS A OCULTAR ALGO DARWIN, USA ESTO
 }
 
 @Component({
@@ -30,6 +31,7 @@ export class SidenavComponent implements OnInit {
     {
       icon: 'analytics',
       label: 'Reportes',
+      hidden: true, //OCULTA
       children: [
         { icon: 'article', label: 'Reporte A', route: '/reports/a' },
         { icon: 'assessment', label: 'Reporte B', route: '/reports/b' },
@@ -50,6 +52,7 @@ export class SidenavComponent implements OnInit {
     {
       icon: 'settings',
       label: 'Configuración',
+      hidden: true, // <--- OCULTAR ESTE ELEMENTO
       children: [
         {
           icon: 'manage_accounts',
@@ -74,12 +77,28 @@ export class SidenavComponent implements OnInit {
   }
   private rebuildMenu(): void {
     const newMenuItems: NavItem[] = [];
-    for (const item of this._sourceMenuItems) {
+    //   for (const item of this._sourceMenuItems) {
+    //     newMenuItems.push(item);
+    //     if (item.children && this.expandedItems.has(item)) {
+    //       newMenuItems.push(...item.children);
+    //     }
+    //   }
+    //   this.menuItems = newMenuItems;
+    // }
+    const visibleSourceItems = this._sourceMenuItems.filter(
+      //Quitar en caso de problemas
+      (item) => !item.hidden
+    );
+
+    for (const item of visibleSourceItems) {
       newMenuItems.push(item);
       if (item.children && this.expandedItems.has(item)) {
+        // No es necesario filtrar los hijos, ya que el padre está oculto
         newMenuItems.push(...item.children);
       }
     }
     this.menuItems = newMenuItems;
   }
+  //Logica para mostrar los componenentes que quieras, usando el hidden
+  // True OCULTAR
 }
