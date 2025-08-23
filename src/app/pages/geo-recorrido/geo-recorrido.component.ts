@@ -118,7 +118,7 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public dataSource = new MatTableDataSource<GeoRutas>();
   public selectedRuta: GeoRutas | null = null;
-  public mapaVisible = false;
+  public mapaVisible = false; //Inicia el mapa cerrado
   public isLoadingData = true; // Inicia en true
 
   public mapRoutes: MapRoute[] = [];
@@ -425,15 +425,13 @@ export class GeoRecorridoComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     }
     if (clientesVisitados.length > 1) {
-      const waypoints = clientesVisitados
-        .slice(1, -1)
-        .map((c) => ({
-          location: new google.maps.LatLng(
-            parseFloat(c.latitud),
-            parseFloat(c.longitud)
-          ),
-          stopover: true,
-        }));
+      const waypoints = clientesVisitados.slice(1, -1).map((c) => ({
+        location: new google.maps.LatLng(
+          parseFloat(c.latitud),
+          parseFloat(c.longitud)
+        ),
+        stopover: true,
+      }));
       try {
         const result = await this.directionsService.route({
           origin: new google.maps.LatLng(
