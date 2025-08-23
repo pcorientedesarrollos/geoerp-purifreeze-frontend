@@ -1,36 +1,41 @@
-<!-- Contenedor principal para todos los filtros -->
-<div class="filters-container">
-  <!-- Filtro de Mes -->
-  <mat-form-field appearance="outline">
-    <mat-label>Mes</mat-label>
-    <mat-select
-      [(ngModel)]="selectedMonth"
-      (selectionChange)="onFilterChange()"
-    >
-      <mat-option [value]="undefined">Ninguno</mat-option>
-      @for (month of months; track month.value) {
-      <mat-option [value]="month.value">{{ month.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+<div class="filters-header">
+  <h2>{{ filterTitle }}</h2>
+  <!-- Contenedor principal para todos los filtros -->
+  <div class="filters-container">
+    <!-- Filtro de Mes -->
+    <mat-form-field appearance="outline">
+      <mat-label>Mes</mat-label>
+      <mat-select
+        [(ngModel)]="selectedMonth"
+        (selectionChange)="onFilterChange()"
+      >
+        @for (month of months; track month.value) {
+        <mat-option [value]="month.value">{{ month.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
 
-  <!-- Filtro de Año -->
-  <mat-form-field appearance="outline">
-    <mat-label>Año</mat-label>
-    <mat-select [(ngModel)]="selectedYear" (selectionChange)="onFilterChange()">
-      <mat-option [value]="undefined">Ninguno</mat-option>
-      @for (year of years; track year) {
-      <mat-option [value]="year">{{ year }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+    <!-- Filtro de Año -->
+    <mat-form-field appearance="outline">
+      <mat-label>Año</mat-label>
+      <mat-select
+        [(ngModel)]="selectedYear"
+        (selectionChange)="onFilterChange()"
+      >
+        @for (year of years; track year) {
+        <mat-option [value]="year">{{ year }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Botón para Limpiar Filtros -->
+    <button mat-stroked-button (click)="clearFilters()">
+      <mat-icon>today</mat-icon>
+      Ver Hoy
+    </button>
+  </div>
 </div>
 
-@if (isLoading) {
-<div class="spinner-container">
-  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-</div>
-} @else {
 <!-- Contenedor de las tarjetas -->
 <div class="cards-container">
   @for (card of dashboardCards; track card.title) {
@@ -40,27 +45,46 @@
         <mat-icon>{{ card.icon }}</mat-icon>
       </div>
       <mat-card-title>{{ card.title }}</mat-card-title>
-      <mat-card-subtitle>Datos Actualizados</mat-card-subtitle>
+      <mat-card-subtitle>
+        @if (card.title === 'Vehículos en Ruta') {
+        <span>En este momento</span>
+        } @else {
+        <span>{{ filterTitle }}</span>
+        }
+      </mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
+      @if (isLoading) {
+      <div class="spinner-container">
+        <mat-spinner diameter="30"></mat-spinner>
+      </div>
+      } @else {
       <p class="card-value">{{ card.value }}</p>
+      }
     </mat-card-content>
   </mat-card>
   }
 </div>
-}
 
-<!-- === (COPIAR) INICIO DE CAMBIOS === -->
 <!-- Contenedor para la sección del mapa -->
-<!-- Se mostrará cuando las tarjetas terminen de cargar -->
-@if (!isLoading) {
 <div class="map-section-container">
-  <h2>Ubicación en Tiempo Real</h2>
-  <app-maps
-    [markers]="mapMarkers"
-    [center]="mapCenter"
-    [zoom]="mapZoom"
-  ></app-maps>
+  <div class="map-header">
+    <h2>Ubicación en Tiempo Real</h2>
+    <span>Basado en rutas con estado "En Curso"</span>
+  </div>
+
+  <div class="map-wrapper">
+    <app-maps
+      [markers]="mapMarkers"
+      [center]="mapCenter"
+      [zoom]="mapZoom"
+    ></app-maps>
+
+    @if (!isLoading && mapMarkers.length === 0) {
+    <div class="map-overlay-message">
+      <mat-icon>no_crash</mat-icon>
+      <p>No hay vehículos en ruta en este momento.</p>
+    </div>
+    }
+  </div>
 </div>
-}
-<!-- === (COPIAR) FIN DE CAMBIOS === -->
