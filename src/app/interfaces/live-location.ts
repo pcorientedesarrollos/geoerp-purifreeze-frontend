@@ -1,6 +1,6 @@
 export interface LiveLocation {
   idUnidadTransporte: number;
-  latitud: string; // La DB devuelve string para decimal
+  latitud: string;
   longitud: string;
   ultimaActualizacion: string | Date;
   nombreUnidad: string;
